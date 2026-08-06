@@ -1,0 +1,73 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: edu.utexas.tacc.vllm.single-node
+  version: 0.1.0
+  labels:
+    execution_types: "BUILTIN,LOCAL"
+    workload: vllm
+    topology: single-node
+spec:
+  contract:
+    description: Launch a policy-controlled single-node vLLM OpenAI-compatible server at TACC.
+    read_only: false
+    long_running: true
+    concurrency_safe: false
+    required_scopes: ["vllm:deploy"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties:
+        model:
+          type: string
+          description: Local model path or model identifier.
+        host:
+          type: string
+          default: 0.0.0.0
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          default: 8000
+        tensor_parallel_size:
+          type: integer
+          minimum: 1
+          default: 1
+      required: ["model", "host", "port", "tensor_parallel_size"]
+  policy:
+    provider: flexserv
+    confirmation: always
+    required_scopes: ["vllm:deploy"]
+    sandbox:
+      provider: flexserv
+      required: true
+      allow_network: false
+    command:
+      allowed_executables: ["/usr/local/bin/vllm"]
+      allowed_arg_path_roots: ["/models", "/scratch", "/home"]
+    filesystem:
+      read_roots: ["/models", "/scratch", "/home"]
+      denied_roots: ["/etc", "/root"]
+      require_canonical_paths: true
+    resources:
+      max_concurrent_runs: 1
+      rate_limit_per_minute: 2
+  steps:
+    - id: node_snapshot
+      kind: native
+      tool: flexserv.builtin.node_snapshot
+      input: {}
+    - id: launch_vllm
+      kind: cmd
+      command:
+        program: /usr/local/bin/vllm
+        args:
+          - serve
+          - "{{input.model}}"
+          - --host
+          - "{{input.host}}"
+          - --port
+          - "{{input.port}}"
+          - --tensor-parallel-size
+          - "{{input.tensor_parallel_size}}"
+      timeout_ms: 60000

@@ -1,0 +1,47 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: io.tapis.systems.update
+  version: 0.1.0
+  labels:
+    execution_types: "REST"
+    tapis_domain: systems
+spec:
+  contract:
+    description: Patch a Tapis system definition.
+    read_only: false
+    concurrency_safe: true
+    required_scopes: ["tapis:systems:write"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties:
+        system_id: { type: string }
+        patch: { type: object }
+      required: ["system_id", "patch"]
+  policy:
+    provider: flexserv
+    confirmation: always
+    required_scopes: ["tapis:systems:write"]
+    network:
+      allowed_hosts: ["tapis.example.org"]
+      allowed_schemes: ["https"]
+      require_tls_for_remote: true
+    resources:
+      timeout_ms: 30000
+      rate_limit_per_minute: 20
+  steps:
+    - id: update_system
+      kind: rest
+      method: PATCH
+      url: "{{secrets.base_url}}/v3/systems/{{input.system_id}}"
+      secret_refs:
+        base_url: tapis.base_url
+        access_token: tapis.access_token
+      headers:
+        Content-Type: application/json
+        X-Tapis-Token: "{{secrets.access_token}}"
+      body: "{{input.patch}}"
+      response:
+        type: json
+      timeout_ms: 30000

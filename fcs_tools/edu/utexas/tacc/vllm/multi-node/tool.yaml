@@ -1,0 +1,80 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: edu.utexas.tacc.vllm.multi-node
+  version: 0.1.0
+  labels:
+    execution_types: "BUILTIN,LOCAL"
+    workload: vllm
+    topology: multi-node
+spec:
+  contract:
+    description: Prepare node topology and launch a multi-node vLLM server role.
+    read_only: false
+    long_running: true
+    concurrency_safe: false
+    required_scopes: ["vllm:deploy"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties:
+        model: { type: string }
+        role:
+          type: string
+          enum: ["head", "worker"]
+        master_addr: { type: string }
+        master_port:
+          type: integer
+          default: 29500
+        tensor_parallel_size:
+          type: integer
+          minimum: 1
+          default: 1
+        pipeline_parallel_size:
+          type: integer
+          minimum: 1
+          default: 1
+      required: ["model", "role", "master_addr", "master_port", "tensor_parallel_size", "pipeline_parallel_size"]
+  policy:
+    provider: flexserv
+    confirmation: always
+    required_scopes: ["vllm:deploy"]
+    sandbox:
+      provider: flexserv
+      required: true
+      allow_network: true
+    command:
+      allowed_executables: ["/usr/local/bin/vllm"]
+      allowed_arg_path_roots: ["/models", "/scratch", "/home"]
+    filesystem:
+      read_roots: ["/models", "/scratch", "/home"]
+      require_canonical_paths: true
+    network:
+      allowed_ports: [8000, 29500]
+      allowed_schemes: ["tcp"]
+      allow_localhost: true
+    resources:
+      max_concurrent_runs: 1
+  steps:
+    - id: topology
+      kind: native
+      tool: flexserv.builtin.node_snapshot
+      input: {}
+    - id: launch_role
+      kind: cmd
+      command:
+        program: /usr/local/bin/vllm
+        args:
+          - serve
+          - "{{input.model}}"
+          - --distributed-executor-backend
+          - ray
+          - --tensor-parallel-size
+          - "{{input.tensor_parallel_size}}"
+          - --pipeline-parallel-size
+          - "{{input.pipeline_parallel_size}}"
+          - --host
+          - "{{input.master_addr}}"
+          - --port
+          - "8000"
+      timeout_ms: 60000

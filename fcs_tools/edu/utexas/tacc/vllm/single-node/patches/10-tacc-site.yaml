@@ -1,0 +1,9 @@
+metadata:
+  labels:
+    site: tacc
+spec:
+  policy:
+    filesystem:
+      read_roots: ["/models", "/scratch", "/home", "/work"]
+    command:
+      allowed_arg_path_roots: ["/models", "/scratch", "/home", "/work"]

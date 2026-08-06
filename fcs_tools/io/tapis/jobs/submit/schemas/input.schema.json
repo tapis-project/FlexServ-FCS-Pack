@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "app_id": { "type": "string" },
+    "app_version": { "type": "string" },
+    "name": { "type": "string" },
+    "exec_system_id": { "type": "string" },
+    "parameter_set": { "type": "object" }
+  },
+  "required": ["app_id", "name", "exec_system_id"]
+}

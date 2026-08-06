@@ -1,0 +1,5 @@
+profile: backend-launch
+summary: Example policy profile for multi-node vLLM launch.
+controls:
+  sandbox_required: true
+  network_required: true

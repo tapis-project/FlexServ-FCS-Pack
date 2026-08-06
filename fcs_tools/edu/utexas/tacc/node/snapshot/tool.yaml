@@ -1,0 +1,29 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: edu.utexas.tacc.node.snapshot
+  version: 0.1.0
+spec:
+  contract:
+    description: Return the cached FCS node snapshot with identity, metrics, inventory, and topology.
+    read_only: true
+    concurrency_safe: true
+    required_scopes: ["fcs:read"]
+    parameters_schema:
+      type: object
+      properties: {}
+  policy:
+    provider: flexserv
+    confirmation: never
+    required_scopes: ["fcs:read"]
+    resources:
+      timeout_ms: 5000
+      max_output_bytes: 1048576
+      max_concurrent_runs: 16
+      rate_limit_per_minute: 240
+  steps:
+    - id: snapshot
+      kind: native
+      tool: flexserv.builtin.node_snapshot
+      input: {}
+      timeout_ms: 5000

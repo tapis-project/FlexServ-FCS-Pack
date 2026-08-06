@@ -1,0 +1,67 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: edu.utexas.tacc.vllm.pd
+  version: 0.1.0
+  labels:
+    execution_types: "LOCAL"
+    workload: vllm
+    topology: prefill-decode
+spec:
+  contract:
+    description: Launch vLLM prefill/decode workers for disaggregated serving.
+    read_only: false
+    long_running: true
+    concurrency_safe: false
+    required_scopes: ["vllm:deploy"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties:
+        model: { type: string }
+        kv_connector: { type: string, default: nixl }
+        prefill_port: { type: integer, default: 8100 }
+        decode_port: { type: integer, default: 8200 }
+      required: ["model", "kv_connector", "prefill_port", "decode_port"]
+  policy:
+    provider: flexserv
+    confirmation: always
+    required_scopes: ["vllm:deploy"]
+    sandbox:
+      provider: flexserv
+      required: true
+      allow_network: true
+    command:
+      allowed_executables: ["/usr/local/bin/vllm"]
+      allowed_arg_path_roots: ["/models", "/scratch", "/home"]
+    network:
+      allowed_ports: [8100, 8200]
+      allowed_schemes: ["tcp"]
+      allow_localhost: true
+    resources:
+      max_concurrent_runs: 1
+  steps:
+    - id: launch_prefill
+      kind: cmd
+      command:
+        program: /usr/local/bin/vllm
+        args:
+          - serve
+          - "{{input.model}}"
+          - --port
+          - "{{input.prefill_port}}"
+          - --kv-transfer-config
+          - "{{input.kv_connector}}"
+      timeout_ms: 60000
+    - id: launch_decode
+      kind: cmd
+      command:
+        program: /usr/local/bin/vllm
+        args:
+          - serve
+          - "{{input.model}}"
+          - --port
+          - "{{input.decode_port}}"
+          - --kv-transfer-config
+          - "{{input.kv_connector}}"
+      timeout_ms: 60000

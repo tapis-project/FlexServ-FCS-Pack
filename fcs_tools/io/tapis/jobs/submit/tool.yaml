@@ -1,0 +1,67 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: io.tapis.jobs.submit
+  version: 0.1.0
+  labels:
+    execution_types: "REST"
+    tapis_domain: jobs
+spec:
+  contract:
+    description: Validate a Tapis app and submit a Tapis job.
+    read_only: false
+    concurrency_safe: true
+    required_scopes: ["tapis:jobs:submit"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties:
+        app_id: { type: string }
+        app_version: { type: string }
+        name: { type: string }
+        exec_system_id: { type: string }
+        parameter_set: { type: object }
+      required: ["app_id", "name", "exec_system_id"]
+  policy:
+    provider: flexserv
+    confirmation: always
+    required_scopes: ["tapis:jobs:submit"]
+    network:
+      allowed_hosts: ["tapis.example.org"]
+      allowed_schemes: ["https"]
+      require_tls_for_remote: true
+    resources:
+      timeout_ms: 30000
+      rate_limit_per_minute: 30
+  steps:
+    - id: get_app
+      kind: rest
+      method: GET
+      url: "{{secrets.base_url}}/v3/apps/{{input.app_id}}"
+      secret_refs:
+        base_url: tapis.base_url
+        access_token: tapis.access_token
+      headers:
+        X-Tapis-Token: "{{secrets.access_token}}"
+      response:
+        type: json
+      timeout_ms: 10000
+    - id: submit_job
+      kind: rest
+      method: POST
+      url: "{{secrets.base_url}}/v3/jobs/submit"
+      secret_refs:
+        base_url: tapis.base_url
+        access_token: tapis.access_token
+      headers:
+        Content-Type: application/json
+        X-Tapis-Token: "{{secrets.access_token}}"
+      body:
+        appId: "{{input.app_id}}"
+        appVersion: "{{input.app_version}}"
+        name: "{{input.name}}"
+        execSystemId: "{{input.exec_system_id}}"
+        parameterSet: "{{input.parameter_set}}"
+      response:
+        type: json
+      timeout_ms: 30000

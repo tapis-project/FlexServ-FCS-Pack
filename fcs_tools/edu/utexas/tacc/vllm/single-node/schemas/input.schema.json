@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "model": { "type": "string" },
+    "host": { "type": "string", "default": "0.0.0.0" },
+    "port": { "type": "integer", "minimum": 1, "maximum": 65535, "default": 8000 },
+    "tensor_parallel_size": { "type": "integer", "minimum": 1, "default": 1 }
+  },
+  "required": ["model", "host", "port", "tensor_parallel_size"]
+}

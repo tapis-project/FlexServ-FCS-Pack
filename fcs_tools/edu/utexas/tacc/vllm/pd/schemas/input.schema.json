@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "model": { "type": "string" },
+    "kv_connector": { "type": "string", "default": "nixl" },
+    "prefill_port": { "type": "integer", "default": 8100 },
+    "decode_port": { "type": "integer", "default": 8200 }
+  },
+  "required": ["model", "kv_connector", "prefill_port", "decode_port"]
+}

@@ -1,0 +1,48 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: io.tapis.apps.create
+  version: 0.1.0
+  labels:
+    execution_types: "REST"
+    tapis_domain: apps
+spec:
+  contract:
+    description: Create a Tapis app definition.
+    read_only: false
+    concurrency_safe: true
+    required_scopes: ["tapis:apps:write"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties:
+        app:
+          type: object
+          description: Tapis app definition payload.
+      required: ["app"]
+  policy:
+    provider: flexserv
+    confirmation: always
+    required_scopes: ["tapis:apps:write"]
+    network:
+      allowed_hosts: ["tapis.example.org"]
+      allowed_schemes: ["https"]
+      require_tls_for_remote: true
+    resources:
+      timeout_ms: 30000
+      rate_limit_per_minute: 20
+  steps:
+    - id: create_app
+      kind: rest
+      method: POST
+      url: "{{secrets.base_url}}/v3/apps"
+      secret_refs:
+        base_url: tapis.base_url
+        access_token: tapis.access_token
+      headers:
+        Content-Type: application/json
+        X-Tapis-Token: "{{secrets.access_token}}"
+      body: "{{input.app}}"
+      response:
+        type: json
+      timeout_ms: 30000

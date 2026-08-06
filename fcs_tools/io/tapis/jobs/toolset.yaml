@@ -1,0 +1,24 @@
+schema_version: flexserv.toolset.v1alpha1
+kind: ToolSet
+metadata:
+  name: io.tapis.jobs
+  version: 0.1.0
+  labels:
+    organization: tapis
+    domain: jobs
+spec:
+  description: Tapis Jobs REST capabilities.
+  skill_scopes: ["tapis:jobs:read", "tapis:jobs:submit", "tapis:jobs:cancel"]
+  tools:
+    - name: io.tapis.jobs.submit
+      version: 0.1.0
+      path: submit
+    - name: io.tapis.jobs.get
+      version: 0.1.0
+      path: get
+    - name: io.tapis.jobs.cancel
+      version: 0.1.0
+      path: cancel
+    - name: io.tapis.jobs.logs
+      version: 0.1.0
+      path: logs

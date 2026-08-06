@@ -1,0 +1,44 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: io.tapis.systems.delete
+  version: 0.1.0
+  labels:
+    execution_types: "REST"
+    tapis_domain: systems
+spec:
+  contract:
+    description: Delete a Tapis system by id.
+    read_only: false
+    concurrency_safe: true
+    required_scopes: ["tapis:systems:delete"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties:
+        system_id: { type: string }
+      required: ["system_id"]
+  policy:
+    provider: flexserv
+    confirmation: always
+    required_scopes: ["tapis:systems:delete"]
+    network:
+      allowed_hosts: ["tapis.example.org"]
+      allowed_schemes: ["https"]
+      require_tls_for_remote: true
+    resources:
+      timeout_ms: 30000
+      rate_limit_per_minute: 10
+  steps:
+    - id: delete_system
+      kind: rest
+      method: DELETE
+      url: "{{secrets.base_url}}/v3/systems/{{input.system_id}}"
+      secret_refs:
+        base_url: tapis.base_url
+        access_token: tapis.access_token
+      headers:
+        X-Tapis-Token: "{{secrets.access_token}}"
+      response:
+        type: json
+      timeout_ms: 30000

@@ -1,0 +1,38 @@
+{
+  "schema_version": "flexserv.fcs-pack.v1alpha1",
+  "name": "flexserv-fcs-pack",
+  "version": "2026.06.09",
+  "target": "linux-x86_64",
+  "toolsets": [
+    {
+      "name": "edu.utexas.tacc.vllm",
+      "version": "0.1.0",
+      "path": "fcs_tools/edu/utexas/tacc/vllm"
+    },
+    {
+      "name": "edu.utexas.tacc.node",
+      "version": "0.1.0",
+      "path": "fcs_tools/edu/utexas/tacc/node"
+    },
+    {
+      "name": "io.tapis.agentic",
+      "version": "0.1.0",
+      "path": "fcs_tools/io/tapis/agentic"
+    },
+    {
+      "name": "io.tapis.jobs",
+      "version": "0.1.0",
+      "path": "fcs_tools/io/tapis/jobs"
+    },
+    {
+      "name": "io.tapis.apps",
+      "version": "0.1.0",
+      "path": "fcs_tools/io/tapis/apps"
+    },
+    {
+      "name": "io.tapis.systems",
+      "version": "0.1.0",
+      "path": "fcs_tools/io/tapis/systems"
+    }
+  ]
+}

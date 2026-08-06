@@ -1,0 +1,15 @@
+schema_version: flexserv.toolset.v1alpha1
+kind: ToolSet
+metadata:
+  name: edu.utexas.tacc.node
+  version: 0.1.0
+  labels:
+    organization: tacc
+    workload: node
+spec:
+  description: TACC node inspection and management capabilities.
+  skill_scopes: ["fcs:read"]
+  tools:
+    - name: edu.utexas.tacc.node.snapshot
+      version: 0.1.0
+      path: snapshot

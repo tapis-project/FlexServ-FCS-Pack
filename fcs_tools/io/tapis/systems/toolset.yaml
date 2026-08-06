@@ -1,0 +1,24 @@
+schema_version: flexserv.toolset.v1alpha1
+kind: ToolSet
+metadata:
+  name: io.tapis.systems
+  version: 0.1.0
+  labels:
+    organization: tapis
+    domain: systems
+spec:
+  description: Tapis Systems REST capabilities.
+  skill_scopes: ["tapis:systems:read", "tapis:systems:write", "tapis:systems:delete"]
+  tools:
+    - name: io.tapis.systems.create
+      version: 0.1.0
+      path: create
+    - name: io.tapis.systems.get
+      version: 0.1.0
+      path: get
+    - name: io.tapis.systems.update
+      version: 0.1.0
+      path: update
+    - name: io.tapis.systems.delete
+      version: 0.1.0
+      path: delete

@@ -1,0 +1,18 @@
+schema_version: flexserv.toolset.v1alpha1
+kind: ToolSet
+metadata:
+  name: io.tapis.apps
+  version: 0.1.0
+  labels:
+    organization: tapis
+    domain: apps
+spec:
+  description: Tapis Apps REST capabilities.
+  skill_scopes: ["tapis:apps:read", "tapis:apps:write"]
+  tools:
+    - name: io.tapis.apps.create
+      version: 0.1.0
+      path: create
+    - name: io.tapis.apps.get
+      version: 0.1.0
+      path: get
