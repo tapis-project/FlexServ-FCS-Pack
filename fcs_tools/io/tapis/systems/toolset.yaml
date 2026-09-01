@@ -22,3 +22,6 @@ spec:
     - name: io.tapis.systems.delete
       version: 0.1.0
       path: delete
+    - name: io.tapis.systems.search
+      version: 0.1.0
+      path: search

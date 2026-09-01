@@ -1,5 +1,0 @@
-profile: tapis-rest-write
-summary: Restrict job submission to the configured Tapis tenant host.
-allowed_secret_refs:
-  - tapis.base_url
-  - tapis.access_token

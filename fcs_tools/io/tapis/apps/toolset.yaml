@@ -16,3 +16,6 @@ spec:
     - name: io.tapis.apps.get
       version: 0.1.0
       path: get
+    - name: io.tapis.apps.search
+      version: 0.1.0
+      path: search

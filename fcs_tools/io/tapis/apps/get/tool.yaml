@@ -3,43 +3,30 @@ kind: Tool
 metadata:
   name: io.tapis.apps.get
   version: 0.1.0
-  labels:
-    execution_types: "REST"
-    tapis_domain: apps
+  labels: { execution_types: "REST", tapis_domain: apps, pack: tapis-core }
 spec:
   contract:
-    description: Fetch a Tapis app definition.
+    description: Retrieve the latest version of a Tapis application.
     read_only: true
     concurrency_safe: true
     required_scopes: ["tapis:apps:read"]
     parameters_schema:
       type: object
       additionalProperties: false
-      properties:
-        app_id: { type: string }
-        app_version: { type: string }
-      required: ["app_id"]
+      properties: { app_id: { type: string } }
+      required: [app_id]
   policy:
     provider: flexserv
     confirmation: never
     required_scopes: ["tapis:apps:read"]
-    network:
-      allowed_hosts: ["tapis.io"]
-      allowed_schemes: ["https"]
-      require_tls_for_remote: true
-    resources:
-      timeout_ms: 10000
-      rate_limit_per_minute: 60
+    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
+    resources: { timeout_ms: 10000, rate_limit_per_minute: 60 }
   steps:
     - id: get_app
       kind: rest
       method: GET
       url: "{{secrets.base_url}}/v3/apps/{{input.app_id}}"
-      secret_refs:
-        base_url: tapis.base_url
-        access_token: tapis.access_token
-      headers:
-        X-Tapis-Token: "{{secrets.access_token}}"
-      response:
-        type: json
+      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
+      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
+      response: { type: json }
       timeout_ms: 10000

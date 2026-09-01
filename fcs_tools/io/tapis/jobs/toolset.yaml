@@ -22,3 +22,24 @@ spec:
     - name: io.tapis.jobs.logs
       version: 0.1.0
       path: logs
+    - name: io.tapis.jobs.prepare
+      version: 0.1.0
+      path: prepare
+    - name: io.tapis.jobs.search
+      version: 0.1.0
+      path: search
+    - name: io.tapis.jobs.inspect
+      version: 0.1.0
+      path: inspect
+    - name: io.tapis.jobs.wait
+      version: 0.1.0
+      path: wait
+    - name: io.tapis.jobs.outputs.list
+      version: 0.1.0
+      path: outputs/list
+    - name: io.tapis.jobs.outputs.read
+      version: 0.1.0
+      path: outputs/read
+    - name: io.tapis.jobs.outputs.download
+      version: 0.1.0
+      path: outputs/download

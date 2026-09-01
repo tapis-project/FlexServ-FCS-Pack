@@ -33,6 +33,26 @@
       "name": "io.tapis.systems",
       "version": "0.1.0",
       "path": "fcs_tools/io/tapis/systems"
+    },
+    {
+      "name": "io.tapis.context",
+      "version": "0.1.0",
+      "path": "fcs_tools/io/tapis/context"
+    },
+    {
+      "name": "io.tapis.access",
+      "version": "0.1.0",
+      "path": "fcs_tools/io/tapis/access"
+    },
+    {
+      "name": "io.tapis.files",
+      "version": "0.1.0",
+      "path": "fcs_tools/io/tapis/files"
+    },
+    {
+      "name": "io.tapis.pods",
+      "version": "0.1.0",
+      "path": "fcs_tools/io/tapis/pods"
     }
   ]
 }
