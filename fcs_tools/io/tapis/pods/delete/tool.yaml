@@ -1,0 +1,25 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata: { name: io.tapis.pods.delete, version: 0.1.0, labels: { execution_types: "REST", tapis_domain: pods, pack: tapis-pods } }
+spec:
+  contract:
+    description: Permanently delete a Tapis pod.
+    read_only: false
+    concurrency_safe: true
+    required_scopes: ["tapis:pods:delete"]
+    parameters_schema: { type: object, additionalProperties: false, properties: { pod_id: { type: string } }, required: [pod_id] }
+  policy:
+    provider: flexserv
+    confirmation: always
+    required_scopes: ["tapis:pods:delete"]
+    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
+    resources: { timeout_ms: 15000, rate_limit_per_minute: 30 }
+  steps:
+    - id: delete_pod
+      kind: rest
+      method: DELETE
+      url: "{{secrets.base_url}}/v3/pods/{{input.pod_id}}"
+      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
+      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
+      response: { type: json }
+      timeout_ms: 15000

@@ -1,0 +1,13 @@
+schema_version: flexserv.toolset.v1alpha1
+kind: ToolSet
+metadata:
+  name: io.tapis.context
+  version: 0.1.0
+  labels: { organization: tapis, domain: context, pack: tapis-core }
+spec:
+  description: Tapis tenant context capabilities.
+  skill_scopes: ["tapis:context:read"]
+  tools:
+    - name: io.tapis.context.get
+      version: 0.1.0
+      path: get

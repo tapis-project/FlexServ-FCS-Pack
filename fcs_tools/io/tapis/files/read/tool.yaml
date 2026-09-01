@@ -1,0 +1,32 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: io.tapis.files.read
+  version: 0.1.0
+  labels: { execution_types: "REST", tapis_domain: files, pack: tapis-files }
+spec:
+  contract:
+    description: Read file or object content from a Tapis system.
+    read_only: true
+    concurrency_safe: true
+    required_scopes: ["tapis:files:read"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties: { system_id: { type: string }, path: { type: string } }
+      required: [system_id, path]
+  policy:
+    provider: flexserv
+    confirmation: never
+    required_scopes: ["tapis:files:read"]
+    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
+    resources: { timeout_ms: 30000, max_output_bytes: 1048576, rate_limit_per_minute: 60 }
+  steps:
+    - id: read_file
+      kind: rest
+      method: GET
+      url: "{{secrets.base_url}}/v3/files/content/{{input.system_id}}/{{input.path}}"
+      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
+      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
+      response: { type: text }
+      timeout_ms: 30000

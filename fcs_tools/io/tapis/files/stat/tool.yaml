@@ -1,0 +1,32 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: io.tapis.files.stat
+  version: 0.1.0
+  labels: { execution_types: "REST", tapis_domain: files, pack: tapis-files }
+spec:
+  contract:
+    description: Return Linux stat information for a path on a Tapis system.
+    read_only: true
+    concurrency_safe: true
+    required_scopes: ["tapis:files:read"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties: { system_id: { type: string }, path: { type: string } }
+      required: [system_id, path]
+  policy:
+    provider: flexserv
+    confirmation: never
+    required_scopes: ["tapis:files:read"]
+    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
+    resources: { timeout_ms: 30000, rate_limit_per_minute: 60 }
+  steps:
+    - id: stat_path
+      kind: rest
+      method: GET
+      url: "{{secrets.base_url}}/v3/files/utils/linux/{{input.system_id}}/{{input.path}}"
+      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
+      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
+      response: { type: json }
+      timeout_ms: 30000

@@ -1,0 +1,33 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: io.tapis.files.mkdir
+  version: 0.1.0
+  labels: { execution_types: "REST", tapis_domain: files, pack: tapis-files }
+spec:
+  contract:
+    description: Create a directory on a Tapis system.
+    read_only: false
+    concurrency_safe: true
+    required_scopes: ["tapis:files:write"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties: { system_id: { type: string }, path: { type: string } }
+      required: [system_id, path]
+  policy:
+    provider: flexserv
+    confirmation: always
+    required_scopes: ["tapis:files:write"]
+    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
+    resources: { timeout_ms: 30000, rate_limit_per_minute: 30 }
+  steps:
+    - id: make_directory
+      kind: rest
+      method: POST
+      url: "{{secrets.base_url}}/v3/files/ops/{{input.system_id}}"
+      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
+      headers: { Content-Type: application/json, X-Tapis-Token: "{{secrets.access_token}}" }
+      body: { path: "{{input.path}}" }
+      response: { type: json }
+      timeout_ms: 30000

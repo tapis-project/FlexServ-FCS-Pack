@@ -1,0 +1,33 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: io.tapis.systems.search
+  version: 0.1.0
+  labels: { execution_types: "REST", tapis_domain: systems, pack: tapis-core }
+spec:
+  contract:
+    description: Search Tapis systems using the Systems search expression syntax.
+    read_only: true
+    concurrency_safe: true
+    required_scopes: ["tapis:systems:read"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties:
+        search: { type: string, description: "Example: (id.like.stampede*)~(enabled.eq.true)" }
+      required: [search]
+  policy:
+    provider: flexserv
+    confirmation: never
+    required_scopes: ["tapis:systems:read"]
+    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
+    resources: { timeout_ms: 10000, rate_limit_per_minute: 60 }
+  steps:
+    - id: search_systems
+      kind: rest
+      method: GET
+      url: "{{secrets.base_url}}/v3/systems?search={{input.search}}"
+      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
+      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
+      response: { type: json }
+      timeout_ms: 10000

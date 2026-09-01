@@ -1,0 +1,29 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata: { name: io.tapis.jobs.search, version: 0.1.0, labels: { execution_types: "REST", tapis_domain: jobs, pack: tapis-jobs } }
+spec:
+  contract:
+    description: Search Tapis jobs with an encoded Jobs API query string.
+    read_only: true
+    concurrency_safe: true
+    required_scopes: ["tapis:jobs:read"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties: { query: { type: string, description: "Encoded query parameters, for example name.like=flexserv&limit=20" } }
+      required: [query]
+  policy:
+    provider: flexserv
+    confirmation: never
+    required_scopes: ["tapis:jobs:read"]
+    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
+    resources: { timeout_ms: 15000, rate_limit_per_minute: 60 }
+  steps:
+    - id: search_jobs
+      kind: rest
+      method: GET
+      url: "{{secrets.base_url}}/v3/jobs/search?{{input.query}}"
+      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
+      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
+      response: { type: json }
+      timeout_ms: 15000

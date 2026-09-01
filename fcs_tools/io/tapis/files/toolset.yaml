@@ -1,0 +1,16 @@
+schema_version: flexserv.toolset.v1alpha1
+kind: ToolSet
+metadata:
+  name: io.tapis.files
+  version: 0.1.0
+  labels: { organization: tapis, domain: files, pack: tapis-files }
+spec:
+  description: Tapis Files REST capabilities.
+  skill_scopes: ["tapis:files:read", "tapis:files:write"]
+  tools:
+    - { name: io.tapis.files.list, version: 0.1.0, path: list }
+    - { name: io.tapis.files.stat, version: 0.1.0, path: stat }
+    - { name: io.tapis.files.read, version: 0.1.0, path: read }
+    - { name: io.tapis.files.stage, version: 0.1.0, path: stage }
+    - { name: io.tapis.files.transfer, version: 0.1.0, path: transfer }
+    - { name: io.tapis.files.mkdir, version: 0.1.0, path: mkdir }

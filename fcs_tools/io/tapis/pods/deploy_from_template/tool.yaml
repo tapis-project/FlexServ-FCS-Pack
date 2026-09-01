@@ -1,0 +1,39 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata: { name: io.tapis.pods.deploy_from_template, version: 0.1.0, labels: { execution_types: "REST", tapis_domain: pods, pack: tapis-pods } }
+spec:
+  contract:
+    description: Create and immediately start a Tapis pod from a template.
+    read_only: false
+    concurrency_safe: true
+    required_scopes: ["tapis:pods:write"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties:
+        pod_id: { type: string }
+        template: { type: string }
+        description: { type: string }
+        template_overrides: { type: object }
+      required: [pod_id, template, description, template_overrides]
+  policy:
+    provider: flexserv
+    confirmation: always
+    required_scopes: ["tapis:pods:write"]
+    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
+    resources: { timeout_ms: 30000, rate_limit_per_minute: 30 }
+  steps:
+    - id: deploy_pod
+      kind: rest
+      method: POST
+      url: "{{secrets.base_url}}/v3/pods"
+      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
+      headers: { Content-Type: application/json, X-Tapis-Token: "{{secrets.access_token}}" }
+      body:
+        pod_id: "{{input.pod_id}}"
+        template: "{{input.template}}"
+        description: "{{input.description}}"
+        template_overrides: "{{input.template_overrides}}"
+        status_requested: "ON"
+      response: { type: json }
+      timeout_ms: 30000

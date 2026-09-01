@@ -1,0 +1,37 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata: { name: io.tapis.jobs.prepare, version: 0.1.0, labels: { execution_types: "REST", tapis_domain: jobs, pack: tapis-jobs } }
+spec:
+  contract:
+    description: Validate the application and execution system referenced by a prospective Tapis job.
+    read_only: true
+    concurrency_safe: true
+    required_scopes: ["tapis:jobs:read", "tapis:apps:read", "tapis:systems:read"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties: { app_id: { type: string }, app_version: { type: string }, exec_system_id: { type: string } }
+      required: [app_id, app_version, exec_system_id]
+  policy:
+    provider: flexserv
+    confirmation: never
+    required_scopes: ["tapis:jobs:read", "tapis:apps:read", "tapis:systems:read"]
+    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
+    resources: { timeout_ms: 20000, rate_limit_per_minute: 60 }
+  steps:
+    - id: validate_app
+      kind: rest
+      method: GET
+      url: "{{secrets.base_url}}/v3/apps/{{input.app_id}}/{{input.app_version}}"
+      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
+      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
+      response: { type: json }
+      timeout_ms: 10000
+    - id: validate_system
+      kind: rest
+      method: GET
+      url: "{{secrets.base_url}}/v3/systems/{{input.exec_system_id}}"
+      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
+      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
+      response: { type: json }
+      timeout_ms: 10000

@@ -1,0 +1,33 @@
+schema_version: flexserv.tool.v1alpha1
+kind: Tool
+metadata:
+  name: io.tapis.context.get
+  version: 0.1.0
+  labels: { execution_types: "REST", tapis_domain: tenants, pack: tapis-core }
+spec:
+  contract:
+    description: Resolve the current Tapis tenant context without exposing the access token.
+    read_only: true
+    concurrency_safe: true
+    required_scopes: ["tapis:context:read"]
+    parameters_schema:
+      type: object
+      additionalProperties: false
+      properties:
+        tenant_id: { type: string, description: Tapis tenant identifier. }
+      required: [tenant_id]
+  policy:
+    provider: flexserv
+    confirmation: never
+    required_scopes: ["tapis:context:read"]
+    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
+    resources: { timeout_ms: 10000, rate_limit_per_minute: 60 }
+  steps:
+    - id: get_tenant
+      kind: rest
+      method: GET
+      url: "{{secrets.base_url}}/v3/tenants/{{input.tenant_id}}"
+      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
+      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
+      response: { type: json }
+      timeout_ms: 10000
