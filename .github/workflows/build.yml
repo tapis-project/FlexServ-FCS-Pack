@@ -1,0 +1,89 @@
+name: Package and distribute FCS Pack
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    outputs:
+      channel: ${{ steps.meta.outputs.channel }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Install pinned manifest generator
+        run: python3 scripts/fetch_ci_tools.py --platform linux-amd64
+      - name: Test packaging and catalog
+        run: python3 -m unittest discover -s tests -v
+      - id: meta
+        run: python3 scripts/distribution.py metadata --manifest pack/manifest.json --output dist/metadata.json
+      - name: Package pack
+        env:
+          CHANNEL: ${{ steps.meta.outputs.channel }}
+        run: |
+          python3 scripts/package_pack.py pack "dist/artifacts/flexserv-fcs-pack-$CHANNEL.tar.gz"
+          python3 scripts/distribution.py sidecars --archive "dist/artifacts/flexserv-fcs-pack-$CHANNEL.tar.gz" --metadata dist/metadata.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: flexserv-fcs-pack-${{ steps.meta.outputs.channel }}
+          path: dist/artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+  publish-development:
+    if: github.event_name != 'pull_request' && github.ref_type != 'tag'
+    needs: package
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: pack-release-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: flexserv-fcs-pack-${{ needs.package.outputs.channel }}
+          path: dist/artifacts
+      - name: Publish branch or version assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/distribution.py metadata --manifest pack/manifest.json --output dist/metadata.json
+          python3 scripts/distribution.py publish --directory dist/artifacts --metadata dist/metadata.json
+  publish-release:
+    if: github.ref_type == 'tag'
+    needs: package
+    runs-on: ubuntu-24.04
+    environment: release
+    concurrency:
+      group: pack-official-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Install independently pinned release tools
+        run: python3 scripts/fetch_ci_tools.py --platform linux-amd64 --tools fcs-release fcs-release-sign flexserv-fcs
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: flexserv-fcs-pack-${{ needs.package.outputs.channel }}
+          path: dist/artifacts
+      - name: Sign and verify the final pack
+        env:
+          RELEASE_SIGNING_PRIVATE_KEY: ${{ secrets.RELEASE_SIGNING_PRIVATE_KEY }}
+          RELEASE_SIGNING_PUBLIC_POLICY: ${{ vars.RELEASE_SIGNING_PUBLIC_POLICY }}
+          RELEASE_SIGNING_KEY_ID: ${{ vars.RELEASE_SIGNING_KEY_ID }}
+        run: |
+          python3 -c 'import os,pathlib; pathlib.Path("dist/signing-policy.json").write_text(os.environ["RELEASE_SIGNING_PUBLIC_POLICY"])'
+          python3 scripts/finalize_release.py --expected-archives 1 --directory dist/artifacts --verifier "$FCS_RELEASE_BIN" --signer "$FCS_RELEASE_SIGN_BIN" --fcs-validator "$FLEXSERV_FCS_BIN" --policy dist/signing-policy.json --key-id "$RELEASE_SIGNING_KEY_ID" --kind fcs-pack
+      - name: Publish complete draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/distribution.py metadata --manifest pack/manifest.json --output dist/metadata.json
+          python3 scripts/distribution.py publish --directory dist/artifacts --metadata dist/metadata.json

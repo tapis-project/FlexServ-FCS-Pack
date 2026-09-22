@@ -1,8 +1,8 @@
 {
   "schema_version": "flexserv.fcs-pack.v1alpha1",
   "name": "flexserv-fcs-pack",
-  "version": "2026.06.09",
-  "target": "linux-x86_64",
+  "version": "0.1.0",
+  "target": "any",
   "toolsets": [
     {
       "name": "edu.utexas.tacc.vllm",
