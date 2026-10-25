@@ -1,0 +1,79 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.tapis.jobs.outputs.location
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.tapis.jobs.outputs.location (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        job: &id001
+          type: object
+        output:
+          type: object
+          properties:
+            source:
+              enum:
+              - application
+              - stdout
+              - archive
+            file:
+              type: string
+              minLength: 1
+              maxLength: 4096
+            marker:
+              type: string
+              minLength: 1
+              maxLength: 256
+              pattern: ^[^\r\n]+$
+            match:
+              enum:
+              - prefix
+              - after_literal
+            max_bytes:
+              type: integer
+              minimum: 1
+              maximum: 65536
+            max_lines:
+              type: integer
+              minimum: 1
+              maximum: 200
+          required: []
+          additionalProperties: false
+      required:
+      - job
+      - output
+      additionalProperties: false
+    output_schema: *id001
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: resolve
+    kind: bashkit
+    script: scripts/resolve.sh
+    input: '{{params}}'
+    uses:
+      tool_system:
+        name: io.tapis.systems.get
+        version: 0.12.0
+      tool_confirm:
+        name: io.tapis.responses.require_success
+        version: 1.0.0
+      tool_path:
+        name: io.flexserv.paths.resolve_relative
+        version: 1.0.0

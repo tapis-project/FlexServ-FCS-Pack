@@ -1,0 +1,175 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.deployments.vllm
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: 'Local deployment: vllm'
+    parameters_schema: schemas/input.json
+    output_schema: schemas/output.json
+  policy:
+    derive: dependencies
+    resources:
+    - local_vllm
+    - hf_credentials
+  steps:
+  - id: validated
+    kind: call
+    tool:
+      name: local.deployment.validate
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input: '{{params}}'
+  - id: inventory
+    kind: call
+    tool:
+      name: local.host.inspect
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input: {}
+  - id: network
+    kind: call
+    tool:
+      name: local.network.allocate
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input: {}
+  - id: uv
+    kind: call
+    tool:
+      name: local.uv.ensure
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input: {}
+  - id: environment
+    kind: call
+    tool:
+      name: local.environment.ensure
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input:
+        settings: '{{steps.validated}}'
+        uv: '{{steps.uv}}'
+    progress:
+      venv_path: '{{steps.environment.venv_path}}'
+      runtime_simulated: '{{steps.environment.simulated}}'
+  - id: model
+    kind: call
+    tool:
+      name: local.model.resolve
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input:
+        model_id: '{{steps.validated.model_id}}'
+        provider_model_id: '{{steps.validated.provider_model_id}}'
+    progress:
+      checkpoint_path: '{{steps.model.checkpoint_path}}'
+  - id: manifest
+    kind: call
+    tool:
+      name: local.hf.manifest
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input:
+        model: '{{steps.model}}'
+        runtime: '{{steps.environment}}'
+        hf_token_ref: '{{steps.validated.hf_token_ref}}'
+  - id: checkpoint
+    kind: call
+    tool:
+      name: local.hf.download
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input:
+        manifest: '{{steps.manifest}}'
+        hf_token_ref: '{{steps.validated.hf_token_ref}}'
+    progress:
+      model_commit: '{{steps.manifest.commit}}'
+      checkpoint_verified: '{{steps.checkpoint.complete}}'
+      verified_bytes: '{{steps.checkpoint.verified_bytes}}'
+  - id: accelerator
+    kind: call
+    tool:
+      name: local.accelerator.prepare
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input:
+        settings: '{{steps.validated}}'
+        inventory: '{{steps.inventory}}'
+        runtime: '{{steps.environment}}'
+        checkpoint: '{{steps.checkpoint}}'
+        network: '{{steps.network}}'
+  - id: toolchain
+    kind: call
+    tool:
+      name: local.toolchain.prepare
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input:
+        settings: '{{steps.validated}}'
+        runtime: '{{steps.environment}}'
+        accelerator: '{{steps.accelerator}}'
+  - id: network_plan
+    kind: call
+    tool:
+      name: local.network.prepare
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input:
+        settings: '{{steps.validated}}'
+        inventory: '{{steps.inventory}}'
+        runtime: '{{steps.environment}}'
+        checkpoint: '{{steps.checkpoint}}'
+        network: '{{steps.network}}'
+        accelerator: '{{steps.accelerator}}'
+  - id: service
+    kind: call
+    tool:
+      name: local.vllm.start
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input:
+        runtime: '{{steps.environment}}'
+        network: '{{steps.network}}'
+        checkpoint: '{{steps.checkpoint}}'
+        settings: '{{steps.validated}}'
+        accelerator: '{{steps.accelerator}}'
+        toolchain: '{{steps.toolchain}}'
+        network_plan: '{{steps.network_plan}}'
+    progress:
+      deployment_id: '{{steps.service.deployment_id}}'
+      process_id: '{{steps.service.process_id}}'
+    save:
+      tool:
+        /deployment_id: '{{steps.service.deployment_id}}'
+        /process_id: '{{steps.service.process_id}}'
+  execution:
+    mode: background
+    timeout_seconds: 7200
+    max_calls: 512
+  distribution:
+    mode: fanout
+    default_selector:
+      role: worker
+  result:
+    deployment: '{{steps.service}}'
+    environment: '{{steps.environment}}'
+    checkpoint: '{{steps.checkpoint}}'
+    accelerator: '{{steps.accelerator}}'
+    toolchain: '{{steps.toolchain}}'
+    network_plan: '{{steps.network_plan}}'
+    workflow_id: '{{toolctx.root_call_id}}'

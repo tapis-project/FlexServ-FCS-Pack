@@ -1,0 +1,17 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.deployments.cancel
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: 'Local deployment: cancel'
+    parameters_schema: schemas/input.json
+    output_schema: schemas/output.json
+  policy: {}
+  steps:
+  - id: control
+    kind: native
+    tool: workflow.cancel
+    input: '{{params}}'

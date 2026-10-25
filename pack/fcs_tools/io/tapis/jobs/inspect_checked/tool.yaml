@@ -1,0 +1,47 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.tapis.jobs.inspect_checked
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.tapis.jobs.inspect_checked (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        job_uuid:
+          type: string
+          minLength: 1
+          maxLength: 4096
+      required:
+      - job_uuid
+      additionalProperties: false
+    output_schema:
+      type: object
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: inspect
+    kind: bashkit
+    script: scripts/inspect.sh
+    input: '{{params}}'
+    uses:
+      tool_inspect:
+        name: io.tapis.jobs.inspect
+        version: 0.12.0
+      tool_confirm:
+        name: io.tapis.responses.require_success
+        version: 1.0.0

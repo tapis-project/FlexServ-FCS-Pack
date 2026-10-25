@@ -1,0 +1,26 @@
+schema_version: flexserv.toolset.v1alpha2
+kind: ToolSet
+metadata:
+  name: io.tapis.jobs.outputs
+  version: 1.0.0
+spec:
+  description: Reusable io.tapis.jobs.outputs capabilities
+  tools:
+  - name: io.tapis.jobs.outputs.capture_once
+    version: 1.0.0
+    path: capture_once
+  - name: io.tapis.jobs.outputs.capture_token
+    version: 1.0.0
+    path: capture_token
+  - name: io.tapis.jobs.outputs.download
+    version: 0.12.0
+    path: download
+  - name: io.tapis.jobs.outputs.list
+    version: 0.12.0
+    path: list
+  - name: io.tapis.jobs.outputs.location
+    version: 1.0.0
+    path: location
+  - name: io.tapis.jobs.outputs.read
+    version: 0.12.0
+    path: read

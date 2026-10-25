@@ -1,0 +1,11 @@
+schema_version: flexserv.toolset.v1alpha2
+kind: ToolSet
+metadata:
+  name: io.tapis.responses
+  version: 1.0.0
+spec:
+  description: Reusable io.tapis.responses capabilities
+  tools:
+  - name: io.tapis.responses.require_success
+    version: 1.0.0
+    path: require_success

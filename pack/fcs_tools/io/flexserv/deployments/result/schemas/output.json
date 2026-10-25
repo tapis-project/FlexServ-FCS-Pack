@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Progress/report are bounded dynamic workflow metadata, not executable configuration.",
+  "properties": {
+    "done": {
+      "type": "boolean"
+    },
+    "elapsed_seconds": {
+      "format": "double",
+      "minimum": 0.0,
+      "type": "number"
+    },
+    "progress": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "report": true,
+    "status": {
+      "type": "string"
+    },
+    "tool": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "workflow_id",
+    "tool",
+    "status",
+    "elapsed_seconds",
+    "progress",
+    "done"
+  ],
+  "title": "WorkflowObservation",
+  "type": "object"
+}

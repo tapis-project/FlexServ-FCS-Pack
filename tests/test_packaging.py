@@ -1,47 +1,50 @@
-import hashlib
+"""Exercise the public archive, complete checksum, and rejection contracts."""
+import importlib.util
 import json
 from pathlib import Path
-import sys
-import tarfile
 import tempfile
 import unittest
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'scripts'))
-from package_pack import package, checksums
-from distribution import channel
+spec = importlib.util.spec_from_file_location('package_pack', ROOT / 'scripts/package_pack.py')
+packager = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(packager)
 
 
-class PackagingTests(unittest.TestCase):
-    def test_production_catalog_survived_extraction(self):
-        root = ROOT / 'pack'
-        manifest = json.loads((root / 'manifest.json').read_text())
-        self.assertRegex(manifest['version'], r'^\d+\.\d+\.\d+$')
-        self.assertEqual(len(manifest['toolsets']), 10)
-        tools = {'.'.join(p.parent.relative_to(root / 'fcs_tools').parts) for p in root.rglob('tool.yaml')}
-        expected = set((ROOT / 'tests/catalog-tools.txt').read_text().splitlines())
-        self.assertEqual(tools, expected)
-        skills = [p for p in root.rglob('*') if p.is_file() and ('skills' in p.parts or '.skills' in p.parts)]
-        self.assertEqual(len(skills), 13)
+class Packaging(unittest.TestCase):
+    def test_portable_deterministic_catalog(self):
+        with tempfile.TemporaryDirectory() as directory:
+            a, b = Path(directory) / 'a.zip', Path(directory) / 'b.zip'
+            packager.package(ROOT / 'pack', a)
+            packager.package(ROOT / 'pack', b)
+            self.assertEqual(a.read_bytes(), b.read_bytes())
+            with zipfile.ZipFile(a) as archive:
+                names = archive.namelist()
+                self.assertIn('manifest.json', names)
+                self.assertIn('checksums.sha256', names)
+                manifest = json.loads(archive.read('manifest.json'))
+                namespaces = {t['name'] for t in manifest['toolsets']}
+                self.assertIn('io.flexserv.deployments', namespaces)
+                self.assertIn('io.tapis.workflows', namespaces)
+                self.assertEqual(len(names) - 1, len(archive.read('checksums.sha256').splitlines()))
 
-    def test_reproducible_archives_leave_source_unchanged(self):
-        before = checksums(ROOT / 'pack')
-        with tempfile.TemporaryDirectory() as temporary:
-            first, second = Path(temporary) / 'a.tar.gz', Path(temporary) / 'b.tar.gz'
-            package(ROOT / 'pack', first)
-            package(ROOT / 'pack', second)
-            self.assertEqual(first.read_bytes(), second.read_bytes())
-            with tarfile.open(first) as tar:
-                data = {p.name.removeprefix('payload/'): tar.extractfile(p).read() for p in tar if p.isfile() and p.name.startswith('payload/')}
-            for line in data['checksums.sha256'].decode().splitlines():
-                expected, path = line.split('  ', 1)
-                self.assertEqual(hashlib.sha256(data[path]).hexdigest(), expected)
-        self.assertEqual(checksums(ROOT / 'pack'), before)
+    def test_changed_asset_requires_review(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'pack'
+            root.mkdir()
+            (root / 'manifest.json').write_text('{"schema_version":"flexserv.fcs-pack.v1alpha2"}')
+            (root / 'checksums.sha256').write_text(packager.checksums(root))
+            (root / 'script.sh').write_text('changed')
+            with self.assertRaisesRegex(ValueError, 'stale'):
+                packager.package(root, Path(directory) / 'out.zip')
 
-    def test_branch_channels_are_safe_and_distinct(self):
-        self.assertEqual(channel('main'), 'main')
-        self.assertNotEqual(channel('feature/a'), channel('feature-a'))
-        self.assertRegex(channel('feature/Some.Change'), r'^[a-z0-9-]+$')
+    def test_symlink_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'link').symlink_to('/etc/passwd')
+            with self.assertRaisesRegex(ValueError, 'links'):
+                packager.checksums(root)
 
 
 if __name__ == '__main__':

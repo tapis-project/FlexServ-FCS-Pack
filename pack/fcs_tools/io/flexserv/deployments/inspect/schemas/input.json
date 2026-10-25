@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Owner-checked service controls may additionally pin a running incarnation.",
+  "properties": {
+    "deployment_id": {
+      "pattern": "^[0-9a-fA-F-]{36}$",
+      "type": "string"
+    },
+    "generation": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "deployment_id"
+  ],
+  "title": "DeploymentControlInput",
+  "type": "object"
+}

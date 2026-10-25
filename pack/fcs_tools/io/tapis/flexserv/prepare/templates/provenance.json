@@ -1,0 +1,19 @@
+{
+  "commit": "4d88f22a924c75ba92935f4e6a8e1524036b04d0",
+  "sources": [
+    {
+      "path": "flexserv_app.json",
+      "url": "https://raw.githubusercontent.com/tapis-project/application-repository/4d88f22a924c75ba92935f4e6a8e1524036b04d0/flexserv/1.4.0/flexserv_app.json",
+      "sha256": "ab7da9be7ad3e641866e1b74779ddd5c1c5e331ff33e85da51da8c862a4e85b8"
+    },
+    {
+      "path": "flexserv_job.json",
+      "url": "https://raw.githubusercontent.com/tapis-project/application-repository/4d88f22a924c75ba92935f4e6a8e1524036b04d0/flexserv/1.4.0/flexserv_job.json",
+      "sha256": "f40301636292d0bad4c7cd31b5b855af738a90365eb1d591393c91eec6167190"
+    }
+  ],
+  "release_zip_sha256": "25324087c23c9603c22b0f899f8230917e8afaeafc457ffdec582380b7d48e57",
+  "release_output": "execSystemOutputDir/flexserv_access_info.txt",
+  "token_marker": "FlexServ token: ",
+  "token_does_not_imply_readiness": true
+}

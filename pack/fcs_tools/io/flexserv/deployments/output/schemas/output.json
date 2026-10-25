@@ -1,0 +1,449 @@
+{
+  "$defs": {
+    "Identifier": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "type": "string"
+    },
+    "OutputSource": {
+      "description": "Managed process channels preserve the existing output cursor contract.",
+      "enum": [
+        "stdout",
+        "stderr",
+        "file"
+      ],
+      "type": "string"
+    },
+    "PrincipalName": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "type": "string"
+    },
+    "ProcessEvent": {
+      "additionalProperties": false,
+      "description": "A single event follows the supervisor's monotonically increasing sequence.",
+      "properties": {
+        "elapsed_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "process_id": {
+          "type": "string"
+        },
+        "sequence": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source": {
+          "$ref": "#/$defs/OutputSource"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "process_id",
+        "sequence",
+        "source",
+        "text",
+        "elapsed_ms"
+      ],
+      "type": "object"
+    },
+    "ProcessHealth": {
+      "additionalProperties": false,
+      "description": "Probe state never includes raw response bodies, headers or command output.",
+      "properties": {
+        "consecutive_failures": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "last_checked_unix_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "last_duration_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "last_exit_code": {
+          "format": "int32",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "last_result": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "monitor_error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stale": {
+          "type": "boolean"
+        },
+        "state": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "state",
+        "consecutive_failures",
+        "stale"
+      ],
+      "type": "object"
+    },
+    "ProcessLogs": {
+      "additionalProperties": false,
+      "description": "Retained logs publish bounded evidence without exposing arbitrary file handles.",
+      "properties": {
+        "dropped_bytes": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "error": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "first_loss_utc": {
+          "default": null,
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "history_truncated": {
+          "default": false,
+          "type": "boolean"
+        },
+        "last_loss_utc": {
+          "default": null,
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "paused": {
+          "default": false,
+          "type": "boolean"
+        },
+        "retained_bytes": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "retained_segments": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "segments": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "segments_omitted": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "ProcessSnapshot": {
+      "additionalProperties": false,
+      "description": "The wire process snapshot is shared conceptually with supervisor status.",
+      "properties": {
+        "archive_error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cleanup_pending": {
+          "default": false,
+          "type": "boolean"
+        },
+        "definition": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exit_code": {
+          "format": "int32",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "expected_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "generated_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "generation_complete": {
+          "type": "boolean"
+        },
+        "health": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProcessHealth"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "log_file": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "logs": {
+          "$ref": "#/$defs/ProcessLogs",
+          "default": {
+            "dropped_bytes": 0,
+            "error": null,
+            "first_loss_utc": null,
+            "history_truncated": false,
+            "last_loss_utc": null,
+            "paused": false,
+            "retained_bytes": 0,
+            "retained_segments": 0,
+            "segments": [],
+            "segments_omitted": 0
+          }
+        },
+        "mode": {
+          "$ref": "#/$defs/OutputSource"
+        },
+        "output_truncated_bytes": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "parent_process_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pid": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "process_id": {
+          "type": "string"
+        },
+        "process_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "program": {
+          "type": "string"
+        },
+        "reaped": {
+          "type": "boolean"
+        },
+        "report_pending": {
+          "type": "boolean"
+        },
+        "reports": {
+          "description": "Bounded saved diagnostic references remain separate from OS cleanup status.",
+          "items": {
+            "$ref": "#/$defs/ReportReference"
+          },
+          "maxItems": 16,
+          "type": "array"
+        },
+        "state": {
+          "type": "string"
+        },
+        "termination_reason": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "process_id",
+        "pid",
+        "program",
+        "mode",
+        "expected_count",
+        "generated_count",
+        "generation_complete",
+        "state",
+        "reaped"
+      ],
+      "type": "object"
+    },
+    "ReportMediaType": {
+      "description": "Only bounded UTF-8 diagnostic formats are served through the report endpoint.",
+      "enum": [
+        "application/json",
+        "text/plain"
+      ],
+      "type": "string"
+    },
+    "ReportRecordKind": {
+      "description": "Registered archive namespace; IDs alone never select a filesystem subtree.",
+      "enum": [
+        "operation",
+        "workflow",
+        "process"
+      ],
+      "type": "string"
+    },
+    "ReportReference": {
+      "additionalProperties": false,
+      "description": "Saved provenance survives volatile record eviction, but grants no cross-owner access.",
+      "properties": {
+        "content_sha256": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "deployment_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "epoch": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "instance_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Identifier"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "job_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "kind": {
+          "$ref": "#/$defs/ReportRecordKind"
+        },
+        "media_type": {
+          "$ref": "#/$defs/ReportMediaType"
+        },
+        "owner": {
+          "$ref": "#/$defs/PrincipalName"
+        },
+        "record_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "report_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "maximum": 65536,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "record_id",
+        "report_id",
+        "owner",
+        "job_id",
+        "deployment_id",
+        "run_id",
+        "epoch",
+        "content_sha256",
+        "size_bytes",
+        "media_type"
+      ],
+      "type": "object"
+    },
+    "Sha256Hex": {
+      "maxLength": 64,
+      "minLength": 64,
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Observation pages never own or cancel the observed child.",
+  "properties": {
+    "events": {
+      "items": {
+        "$ref": "#/$defs/ProcessEvent"
+      },
+      "type": "array"
+    },
+    "next_cursor": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "status": {
+      "$ref": "#/$defs/ProcessSnapshot"
+    }
+  },
+  "required": [
+    "events",
+    "next_cursor",
+    "status"
+  ],
+  "title": "ProcessOutputResult",
+  "type": "object"
+}

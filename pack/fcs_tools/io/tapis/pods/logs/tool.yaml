@@ -1,25 +1,41 @@
-schema_version: flexserv.tool.v1alpha1
+schema_version: flexserv.tool.v1alpha2
 kind: Tool
-metadata: { name: io.tapis.pods.logs, version: 0.1.0, labels: { execution_types: "REST", tapis_domain: pods, pack: tapis-pods } }
+metadata:
+  name: io.tapis.pods.logs
+  version: 0.12.0
+  visibility: true
+  labels:
+    pack: tapis-pods
 spec:
   contract:
-    description: Retrieve container and action logs for a running Tapis pod.
-    read_only: true
-    concurrency_safe: true
-    required_scopes: ["tapis:pods:read"]
-    parameters_schema: { type: object, additionalProperties: false, properties: { pod_id: { type: string } }, required: [pod_id] }
-  policy:
-    provider: flexserv
-    confirmation: never
-    required_scopes: ["tapis:pods:read"]
-    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
-    resources: { timeout_ms: 15000, max_output_bytes: 1048576, rate_limit_per_minute: 60 }
+    description: Tapis pods.logs
+    parameters_schema:
+      type: object
+      properties:
+        pod_id:
+          type: string
+          minLength: 1
+          maxLength: 256
+      required:
+      - pod_id
+      additionalProperties: false
+    output_schema:
+      type: object
+  secret_refs:
+    tapis_token: tapis.access_token
   steps:
-    - id: get_logs
-      kind: rest
-      method: GET
-      url: "{{secrets.base_url}}/v3/pods/{{input.pod_id}}/logs"
-      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
-      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
-      response: { type: json }
-      timeout_ms: 15000
+  - id: call
+    kind: rest
+    caller: tapis
+    auth:
+      header_passthrough:
+      - X-TAPIS-TOKEN
+      inject:
+        headers:
+          X-TAPIS-TOKEN: '{{secret.tapis_token}}'
+      required_headers:
+      - X-TAPIS-TOKEN
+    request:
+      connection: tapis
+      operation: pods.logs
+      params: '{{params}}'

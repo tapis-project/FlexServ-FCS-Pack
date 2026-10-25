@@ -1,0 +1,11 @@
+schema_version: flexserv.toolset.v1alpha2
+kind: ToolSet
+metadata:
+  name: io.flexserv.ssh.target
+  version: 1.0.0
+spec:
+  description: Reusable io.flexserv.ssh.target capabilities
+  tools:
+  - name: io.flexserv.ssh.target.resolve
+    version: 1.0.0
+    path: resolve

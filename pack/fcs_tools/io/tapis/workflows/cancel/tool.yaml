@@ -1,0 +1,58 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.tapis.workflows.cancel
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: io.tapis.workflows.cancel (bounded, owner-authorized workflow component)
+    parameters_schema:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      additionalProperties: false
+      description: Observer operations use workflow IDs rather than inferring remote
+        job identity.
+      properties:
+        workflow_id:
+          type: string
+      required:
+      - workflow_id
+      title: WorkflowControlInput
+      type: object
+    output_schema:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      additionalProperties: false
+      description: Progress/report are bounded dynamic workflow metadata, not executable
+        configuration.
+      properties:
+        done:
+          type: boolean
+        elapsed_seconds:
+          format: double
+          minimum: 0.0
+          type: number
+        progress:
+          additionalProperties: true
+          type: object
+        report: true
+        status:
+          type: string
+        tool:
+          type: string
+        workflow_id:
+          type: string
+      required:
+      - workflow_id
+      - tool
+      - status
+      - elapsed_seconds
+      - progress
+      - done
+      title: WorkflowObservation
+      type: object
+  policy: {}
+  steps:
+  - id: control
+    kind: native
+    tool: workflow.cancel
+    input: '{{params}}'

@@ -1,29 +1,48 @@
-schema_version: flexserv.tool.v1alpha1
+schema_version: flexserv.tool.v1alpha2
 kind: Tool
-metadata: { name: io.tapis.jobs.outputs.list, version: 0.1.0, labels: { execution_types: "REST", tapis_domain: jobs, pack: tapis-jobs } }
+metadata:
+  name: io.tapis.jobs.outputs.list
+  version: 0.12.0
+  visibility: true
+  labels:
+    pack: tapis-jobs
 spec:
   contract:
-    description: List files beneath a Tapis job output path.
-    read_only: true
-    concurrency_safe: true
-    required_scopes: ["tapis:jobs:outputs:read"]
+    description: Tapis jobs.outputs.list
     parameters_schema:
       type: object
+      properties:
+        job_uuid:
+          type: string
+          minLength: 1
+          maxLength: 128
+        output_path:
+          type: string
+          maxLength: 2048
+          description: Relative system path; no empty interior, dot, parent, percent
+            or backslash segments.
+      required:
+      - job_uuid
+      - output_path
       additionalProperties: false
-      properties: { job_uuid: { type: string }, output_path: { type: string } }
-      required: [job_uuid, output_path]
-  policy:
-    provider: flexserv
-    confirmation: never
-    required_scopes: ["tapis:jobs:outputs:read"]
-    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
-    resources: { timeout_ms: 30000, rate_limit_per_minute: 60 }
+    output_schema:
+      type: object
+  secret_refs:
+    tapis_token: tapis.access_token
   steps:
-    - id: list_outputs
-      kind: rest
-      method: GET
-      url: "{{secrets.base_url}}/v3/jobs/{{input.job_uuid}}/output/list/{{input.output_path}}"
-      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
-      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
-      response: { type: json }
-      timeout_ms: 30000
+  - id: call
+    kind: rest
+    caller: tapis
+    auth:
+      header_passthrough:
+      - X-TAPIS-TOKEN
+      inject:
+        headers:
+          X-TAPIS-TOKEN: '{{secret.tapis_token}}'
+      required_headers:
+      - X-TAPIS-TOKEN
+      priority: header
+    request:
+      connection: tapis
+      operation: jobs.outputs.list
+      params: '{{params}}'

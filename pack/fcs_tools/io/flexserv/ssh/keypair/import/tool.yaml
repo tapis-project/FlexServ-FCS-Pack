@@ -1,0 +1,46 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.ssh.keypair.import
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.flexserv.ssh.keypair.import (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        profile: &id001
+          type: string
+          minLength: 1
+          maxLength: 4096
+        workspace: &id002
+          type: object
+        private_path: *id001
+        public_path: *id001
+      required:
+      - profile
+      - workspace
+      - private_path
+      - public_path
+      additionalProperties: false
+    output_schema: *id002
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: execute
+    kind: native
+    tool: ssh.keypair.import
+    input: '{{params}}'

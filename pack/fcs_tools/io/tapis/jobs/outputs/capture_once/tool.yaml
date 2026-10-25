@@ -1,0 +1,82 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.tapis.jobs.outputs.capture_once
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.tapis.jobs.outputs.capture_once (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        job_uuid: &id001
+          type: string
+          minLength: 1
+          maxLength: 4096
+        output:
+          type: object
+          properties:
+            source:
+              enum:
+              - application
+              - stdout
+              - archive
+            file: *id001
+            marker:
+              type: string
+              minLength: 1
+              maxLength: 256
+              pattern: ^[^\r\n]+$
+            match:
+              enum:
+              - prefix
+              - after_literal
+            max_bytes:
+              type: integer
+              minimum: 1
+              maximum: 65536
+            max_lines:
+              type: integer
+              minimum: 1
+              maximum: 200
+          required: []
+          additionalProperties: false
+      required:
+      - job_uuid
+      - output
+      additionalProperties: false
+    output_schema:
+      type: object
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: observe
+    kind: bashkit
+    script: scripts/observe.sh
+    input: '{{params}}'
+    uses:
+      tool_inspect:
+        name: io.tapis.jobs.inspect_checked
+        version: 1.0.0
+      tool_location:
+        name: io.tapis.jobs.outputs.location
+        version: 1.0.0
+      tool_capture:
+        name: io.tapis.files.capture_prefix
+        version: 1.0.0
+      tool_scan:
+        name: io.flexserv.content.scan_to_secret
+        version: 1.0.0

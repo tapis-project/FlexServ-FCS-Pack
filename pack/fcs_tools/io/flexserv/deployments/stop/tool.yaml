@@ -1,0 +1,24 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.deployments.stop
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: 'Local deployment: stop'
+    parameters_schema: schemas/input.json
+    output_schema: schemas/output.json
+  policy:
+    derive: dependencies
+    resources:
+    - local_vllm
+  steps:
+  - id: execute
+    kind: call
+    tool:
+      name: local.deployment.stop
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input: '{{params}}'

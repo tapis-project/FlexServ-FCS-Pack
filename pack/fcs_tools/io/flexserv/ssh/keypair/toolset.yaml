@@ -1,0 +1,20 @@
+schema_version: flexserv.toolset.v1alpha2
+kind: ToolSet
+metadata:
+  name: io.flexserv.ssh.keypair
+  version: 1.0.0
+spec:
+  description: Reusable io.flexserv.ssh.keypair capabilities
+  tools:
+  - name: io.flexserv.ssh.keypair.generate
+    version: 1.0.0
+    path: generate
+  - name: io.flexserv.ssh.keypair.generate_cli
+    version: 1.0.0
+    path: generate_cli
+  - name: io.flexserv.ssh.keypair.import
+    version: 1.0.0
+    path: import
+  - name: io.flexserv.ssh.keypair.select
+    version: 1.0.0
+    path: select

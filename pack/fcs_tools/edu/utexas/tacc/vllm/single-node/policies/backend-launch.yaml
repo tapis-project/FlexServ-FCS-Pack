@@ -1,6 +1,0 @@
-profile: backend-launch
-summary: Example site policy profile for launching a long-running vLLM backend.
-controls:
-  sandbox_required: true
-  network_required: false
-  max_concurrent_runs: 1

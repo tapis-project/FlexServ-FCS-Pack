@@ -1,0 +1,64 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.tapis.flexserv.provision_and_run
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: io.tapis.flexserv.provision_and_run (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        system: &id002
+          type: object
+        target: &id001
+          type: string
+          minLength: 1
+          maxLength: 4096
+        app_id: *id001
+        deployment: *id002
+        ssh_provider:
+          enum:
+          - rust
+          - cli
+        app_overrides: *id002
+        job_overrides: *id002
+      required:
+      - system
+      - target
+      - app_id
+      - deployment
+      additionalProperties: false
+    output_schema: *id002
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: prepare
+    kind: call
+    tool:
+      name: io.tapis.flexserv.prepare
+      version: 1.0.0
+    input: '{{params}}'
+  - id: run
+    kind: call
+    tool:
+      name: io.tapis.workflows.provision_and_run
+      version: 1.0.0
+    input: '{{steps.prepare}}'
+  execution:
+    mode: background
+    timeout_seconds: 3600
+    max_calls: 4096

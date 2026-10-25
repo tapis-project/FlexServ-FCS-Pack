@@ -1,13 +1,11 @@
-schema_version: flexserv.toolset.v1alpha1
+schema_version: flexserv.toolset.v1alpha2
 kind: ToolSet
 metadata:
   name: io.tapis.access
-  version: 0.1.0
-  labels: { organization: tapis, domain: security, pack: tapis-core }
+  version: 1.0.0
 spec:
-  description: Tapis authorization check capabilities.
-  skill_scopes: ["tapis:access:check"]
+  description: Reusable io.tapis.access capabilities
   tools:
-    - name: io.tapis.access.check
-      version: 0.1.0
-      path: check
+  - name: io.tapis.access.check
+    version: 0.12.0
+    path: check

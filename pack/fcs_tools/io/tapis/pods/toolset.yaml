@@ -1,19 +1,35 @@
-schema_version: flexserv.toolset.v1alpha1
+schema_version: flexserv.toolset.v1alpha2
 kind: ToolSet
 metadata:
   name: io.tapis.pods
-  version: 0.1.0
-  labels: { organization: tapis, domain: pods, pack: tapis-pods }
+  version: 1.0.0
 spec:
-  description: Tapis Pods REST capabilities.
-  skill_scopes: ["tapis:pods:read", "tapis:pods:write", "tapis:pods:delete"]
+  description: Reusable io.tapis.pods capabilities
   tools:
-    - { name: io.tapis.pods.search, version: 0.1.0, path: search }
-    - { name: io.tapis.pods.deploy_from_template, version: 0.1.0, path: deploy_from_template }
-    - { name: io.tapis.pods.inspect, version: 0.1.0, path: inspect }
-    - { name: io.tapis.pods.wait, version: 0.1.0, path: wait }
-    - { name: io.tapis.pods.logs, version: 0.1.0, path: logs }
-    - { name: io.tapis.pods.start, version: 0.1.0, path: start }
-    - { name: io.tapis.pods.stop, version: 0.1.0, path: stop }
-    - { name: io.tapis.pods.restart, version: 0.1.0, path: restart }
-    - { name: io.tapis.pods.delete, version: 0.1.0, path: delete }
+  - name: io.tapis.pods.delete
+    version: 0.12.0
+    path: delete
+  - name: io.tapis.pods.deploy_from_template
+    version: 0.12.0
+    path: deploy_from_template
+  - name: io.tapis.pods.inspect
+    version: 0.12.0
+    path: inspect
+  - name: io.tapis.pods.logs
+    version: 0.12.0
+    path: logs
+  - name: io.tapis.pods.restart
+    version: 0.12.0
+    path: restart
+  - name: io.tapis.pods.search
+    version: 0.12.0
+    path: search
+  - name: io.tapis.pods.start
+    version: 0.12.0
+    path: start
+  - name: io.tapis.pods.stop
+    version: 0.12.0
+    path: stop
+  - name: io.tapis.pods.wait
+    version: 0.12.0
+    path: wait

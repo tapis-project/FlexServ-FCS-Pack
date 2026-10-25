@@ -1,32 +1,43 @@
-schema_version: flexserv.tool.v1alpha1
+schema_version: flexserv.tool.v1alpha2
 kind: Tool
 metadata:
   name: io.tapis.apps.get
-  version: 0.1.0
-  labels: { execution_types: "REST", tapis_domain: apps, pack: tapis-core }
+  version: 0.12.0
+  visibility: true
+  labels:
+    pack: tapis-core
 spec:
   contract:
-    description: Retrieve the latest version of a Tapis application.
-    read_only: true
-    concurrency_safe: true
-    required_scopes: ["tapis:apps:read"]
+    description: Tapis apps.get
     parameters_schema:
       type: object
+      properties:
+        app_id: &id001
+          type: string
+          minLength: 1
+          maxLength: 256
+        app_version: *id001
+      required:
+      - app_id
+      - app_version
       additionalProperties: false
-      properties: { app_id: { type: string } }
-      required: [app_id]
-  policy:
-    provider: flexserv
-    confirmation: never
-    required_scopes: ["tapis:apps:read"]
-    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
-    resources: { timeout_ms: 10000, rate_limit_per_minute: 60 }
+    output_schema:
+      type: object
+  secret_refs:
+    tapis_token: tapis.access_token
   steps:
-    - id: get_app
-      kind: rest
-      method: GET
-      url: "{{secrets.base_url}}/v3/apps/{{input.app_id}}"
-      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
-      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
-      response: { type: json }
-      timeout_ms: 10000
+  - id: call
+    kind: rest
+    caller: tapis
+    auth:
+      header_passthrough:
+      - X-TAPIS-TOKEN
+      inject:
+        headers:
+          X-TAPIS-TOKEN: '{{secret.tapis_token}}'
+      required_headers:
+      - X-TAPIS-TOKEN
+    request:
+      connection: tapis
+      operation: apps.get
+      params: '{{params}}'

@@ -1,0 +1,174 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.tapis.workflows.provision_and_run
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: io.tapis.workflows.provision_and_run (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        system: &id001
+          type: object
+        app: *id001
+        job: *id001
+        target: &id002
+          type: string
+          minLength: 1
+          maxLength: 4096
+        ssh_provider:
+          enum:
+          - rust
+          - cli
+        output:
+          type: object
+          properties:
+            source:
+              enum:
+              - application
+              - stdout
+              - archive
+            file: *id002
+            marker:
+              type: string
+              minLength: 1
+              maxLength: 256
+              pattern: ^[^\r\n]+$
+            match:
+              enum:
+              - prefix
+              - after_literal
+            max_bytes:
+              type: integer
+              minimum: 1
+              maximum: 65536
+            max_lines:
+              type: integer
+              minimum: 1
+              maximum: 200
+          required: []
+          additionalProperties: false
+      required:
+      - system
+      - app
+      - job
+      - target
+      additionalProperties: false
+    output_schema: *id001
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: validated
+    kind: call
+    tool:
+      name: io.tapis.workflows.validate_inputs
+      version: 1.0.0
+    input: '{{params}}'
+  - id: system
+    kind: call
+    tool:
+      name: io.tapis.systems.create
+      version: 1.0.0
+    input:
+      definition: '{{steps.validated.system}}'
+    progress:
+      system_id: '{{steps.system.system_id}}'
+    save:
+      tool:
+        /system_id: '{{steps.system.system_id}}'
+  - id: credentials
+    kind: call
+    tool:
+      name: io.tapis.systems.credentials.setup
+      version: 1.0.0
+    input:
+      system_id: '{{steps.system.system_id}}'
+      target: '{{params.target}}'
+      provider: '{{steps.validated.ssh_provider}}'
+  - id: app
+    kind: call
+    tool:
+      name: io.tapis.apps.create
+      version: 1.0.0
+    input:
+      definition: '{{steps.validated.app}}'
+    progress:
+      app_id: '{{steps.app.app_id}}'
+      app_version: '{{steps.app.app_version}}'
+    save:
+      tool:
+        /app_id: '{{steps.app.app_id}}'
+        /app_version: '{{steps.app.app_version}}'
+  - id: submit
+    kind: call
+    tool:
+      name: io.tapis.jobs.submit_checked
+      version: 1.0.0
+    input:
+      definition: '{{steps.validated.job}}'
+    progress:
+      job_uuid: '{{steps.submit.job_uuid}}'
+    save:
+      tool:
+        /job_uuid: '{{steps.submit.job_uuid}}'
+  - id: inspect
+    kind: call
+    tool:
+      name: io.tapis.jobs.inspect_checked
+      version: 1.0.0
+    input:
+      job_uuid: '{{steps.submit.job_uuid}}'
+  - id: wait
+    kind: call
+    tool:
+      name: io.tapis.jobs.wait_state
+      version: 1.0.0
+    input:
+      job_uuid: '{{steps.submit.job_uuid}}'
+  - id: output
+    kind: call
+    tool:
+      name: io.tapis.jobs.outputs.capture_token
+      version: 1.0.0
+    input:
+      job_uuid: '{{steps.submit.job_uuid}}'
+      output: '{{steps.validated.output}}'
+  - id: result
+    kind: bashkit
+    script: scripts/result.sh
+    input:
+      system: '{{steps.system}}'
+      app: '{{steps.app}}'
+      submitted: '{{steps.submit}}'
+      wait: '{{steps.wait}}'
+      captured: '{{steps.output}}'
+    uses: {}
+  execution:
+    mode: background
+    timeout_seconds: 3600
+    max_calls: 4096
+  context:
+    schema:
+      type: object
+      properties:
+        system_id: *id002
+        app_id: *id002
+        app_version: *id002
+        job_uuid: *id002
+      required: []
+      additionalProperties: false
+    initial: {}

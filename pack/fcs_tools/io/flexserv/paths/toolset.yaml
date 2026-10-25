@@ -1,0 +1,11 @@
+schema_version: flexserv.toolset.v1alpha2
+kind: ToolSet
+metadata:
+  name: io.flexserv.paths
+  version: 1.0.0
+spec:
+  description: Reusable io.flexserv.paths capabilities
+  tools:
+  - name: io.flexserv.paths.resolve_relative
+    version: 1.0.0
+    path: resolve_relative

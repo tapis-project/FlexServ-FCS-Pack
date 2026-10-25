@@ -1,0 +1,65 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.tapis.flexserv.prepare
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.tapis.flexserv.prepare (bounded, owner-authorized workflow component)
+    parameters_schema:
+      type: object
+      properties:
+        system: &id002
+          type: object
+        target: &id001
+          type: string
+          minLength: 1
+          maxLength: 4096
+        app_id: *id001
+        deployment: *id002
+        ssh_provider:
+          enum:
+          - rust
+          - cli
+        app_overrides: *id002
+        job_overrides: *id002
+      required:
+      - system
+      - target
+      - app_id
+      - deployment
+      additionalProperties: false
+    output_schema: *id002
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: app
+    kind: native
+    tool: pack.read_json
+    input:
+      path: templates/flexserv_app.json
+  - id: job
+    kind: native
+    tool: pack.read_json
+    input:
+      path: templates/flexserv_job.json
+  - id: prepare
+    kind: bashkit
+    script: scripts/prepare.sh
+    input:
+      params: '{{params}}'
+      app: '{{steps.app}}'
+      job: '{{steps.job}}'
+    uses: {}

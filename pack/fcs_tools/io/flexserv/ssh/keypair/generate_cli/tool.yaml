@@ -1,0 +1,79 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.ssh.keypair.generate_cli
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.flexserv.ssh.keypair.generate_cli (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        profile: &id001
+          type: string
+          minLength: 1
+          maxLength: 4096
+        workspace_profile: *id001
+      required:
+      - profile
+      - workspace_profile
+      additionalProperties: false
+    output_schema:
+      type: object
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: workspace
+    kind: native
+    tool: workspace.create
+    input:
+      profile: '{{params.workspace_profile}}'
+  - id: stage
+    kind: bashkit
+    script: scripts/stage.sh
+    input: '{{params}}'
+    uses: {}
+    workspace: '{{steps.workspace}}'
+  - id: disk
+    kind: native
+    tool: workspace.materialize
+    input:
+      workspace: '{{steps.workspace}}'
+  - id: generate
+    kind: process
+    process: keygen
+  - id: import
+    kind: call
+    tool:
+      name: io.flexserv.ssh.keypair.import
+      version: 1.0.0
+    input:
+      profile: '{{params.profile}}'
+      workspace: '{{steps.workspace}}'
+      private_path: generated_key
+      public_path: generated_key.pub
+  processes:
+    keygen:
+      type: command
+      execution_profile: ssh_keygen_cli
+      program: bash
+      argv:
+      - '{{steps.disk.path}}/generate.sh'
+      - '{{steps.disk.path}}/generated_key'
+      cwd: '{{steps.disk.path}}'
+      timeouts:
+        execution_seconds: 30
+  result: '{{steps.import}}'

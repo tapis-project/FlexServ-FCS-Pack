@@ -1,0 +1,49 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.ssh.keypair.select
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.flexserv.ssh.keypair.select (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        target: &id001
+          type: object
+        provider:
+          enum:
+          - rust
+          - cli
+      required:
+      - target
+      - provider
+      additionalProperties: false
+    output_schema: *id001
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: select
+    kind: bashkit
+    script: scripts/select.sh
+    input: '{{params}}'
+    uses:
+      tool_rust:
+        name: io.flexserv.ssh.keypair.generate
+        version: 1.0.0
+      tool_cli:
+        name: io.flexserv.ssh.keypair.generate_cli
+        version: 1.0.0

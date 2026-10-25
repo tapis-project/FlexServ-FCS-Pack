@@ -1,0 +1,38 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.tapis.responses.require_success
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.tapis.responses.require_success (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        response: &id001
+          type: object
+      required:
+      - response
+      additionalProperties: false
+    output_schema: *id001
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: check
+    kind: bashkit
+    script: scripts/check.sh
+    input: '{{params}}'
+    uses: {}

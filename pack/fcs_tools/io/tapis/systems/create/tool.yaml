@@ -1,60 +1,68 @@
-schema_version: flexserv.tool.v1alpha1
+schema_version: flexserv.tool.v1alpha2
 kind: Tool
 metadata:
   name: io.tapis.systems.create
-  version: 0.1.0
-  labels:
-    execution_types: "REST"
-    tapis_domain: systems
+  version: 1.0.0
+  visibility: false
 spec:
   contract:
-    description: Create a Tapis system and read it back.
-    read_only: false
-    concurrency_safe: true
-    required_scopes: ["tapis:systems:write"]
+    description: io.tapis.systems.create (bounded, owner-authorized workflow component)
     parameters_schema:
       type: object
-      additionalProperties: false
       properties:
-        system:
+        definition: &id001
           type: object
-          description: Tapis system definition payload.
-      required: ["system"]
+      required:
+      - definition
+      additionalProperties: false
+    output_schema: *id001
   policy:
-    provider: flexserv
-    confirmation: always
-    required_scopes: ["tapis:systems:write"]
-    network:
-      allowed_hosts: ["tapis.example.org"]
-      allowed_schemes: ["https"]
-      require_tls_for_remote: true
     resources:
-      timeout_ms: 30000
-      rate_limit_per_minute: 20
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
   steps:
-    - id: create_system
-      kind: rest
+  - id: request
+    kind: rest
+    request:
+      connection: tapis
       method: POST
-      url: "{{secrets.base_url}}/v3/systems"
-      secret_refs:
-        base_url: tapis.base_url
-        access_token: tapis.access_token
-      headers:
-        Content-Type: application/json
-        X-Tapis-Token: "{{secrets.access_token}}"
-      body: "{{input.system}}"
-      response:
+      path:
+      - v3
+      - systems
+      response: json
+      body:
         type: json
-      timeout_ms: 30000
-    - id: get_created_system
-      kind: rest
-      method: GET
-      url: "{{secrets.base_url}}/v3/systems/{{input.system.id}}"
-      secret_refs:
-        base_url: tapis.base_url
-        access_token: tapis.access_token
-      headers:
-        X-Tapis-Token: "{{secrets.access_token}}"
-      response:
-        type: json
-      timeout_ms: 10000
+        value: '{{params.definition}}'
+    auth:
+      header_passthrough:
+      - X-TAPIS-TOKEN
+      inject:
+        headers:
+          X-TAPIS-TOKEN: '{{secret.tapis_token}}'
+      required_headers:
+      - X-TAPIS-TOKEN
+  - id: confirmed
+    kind: call
+    tool:
+      name: io.tapis.responses.require_success
+      version: 1.0.0
+    input:
+      response: '{{steps.request}}'
+  - id: identity
+    kind: bashkit
+    script: scripts/identity.sh
+    input:
+      definition: '{{params.definition}}'
+      response: '{{steps.request}}'
+    uses: {}
+  secret_refs:
+    tapis_token: tapis.access_token

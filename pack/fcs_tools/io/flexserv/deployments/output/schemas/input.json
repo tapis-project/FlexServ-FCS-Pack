@@ -1,0 +1,48 @@
+{
+  "$defs": {
+    "FileOutputSource": {
+      "description": "Public managed-output wrappers expose only the existing file stream.",
+      "enum": [
+        "file"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Existing output wrapper requires managed-file observation and bounded pages.",
+  "properties": {
+    "after": {
+      "default": 0,
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "limit": {
+      "default": 256,
+      "format": "uint",
+      "maximum": 1000,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "process_id": {
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/FileOutputSource"
+    },
+    "wait_ms": {
+      "default": 1000,
+      "format": "uint64",
+      "maximum": 30000,
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "process_id",
+    "source"
+  ],
+  "title": "ProcessOutputInput",
+  "type": "object"
+}

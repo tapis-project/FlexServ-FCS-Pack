@@ -1,58 +1,98 @@
 {
-  "schema_version": "flexserv.fcs-pack.v1alpha1",
-  "name": "flexserv-fcs-pack",
-  "version": "0.1.0",
+  "schema_version": "flexserv.fcs-pack.v1alpha2",
+  "name": "flexserv-capability-pack",
+  "version": "1.0.0",
   "target": "any",
   "toolsets": [
     {
-      "name": "edu.utexas.tacc.vllm",
-      "version": "0.1.0",
-      "path": "fcs_tools/edu/utexas/tacc/vllm"
+      "name": "io.flexserv.content",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/flexserv/content"
     },
     {
-      "name": "edu.utexas.tacc.node",
-      "version": "0.1.0",
-      "path": "fcs_tools/edu/utexas/tacc/node"
+      "name": "io.flexserv.deployments",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/flexserv/deployments"
     },
     {
-      "name": "io.tapis.agentic",
-      "version": "0.1.0",
-      "path": "fcs_tools/io/tapis/agentic"
+      "name": "io.flexserv.paths",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/flexserv/paths"
     },
     {
-      "name": "io.tapis.jobs",
-      "version": "0.1.0",
-      "path": "fcs_tools/io/tapis/jobs"
+      "name": "io.flexserv.ssh.authorized_keys",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/flexserv/ssh/authorized_keys"
     },
     {
-      "name": "io.tapis.apps",
-      "version": "0.1.0",
-      "path": "fcs_tools/io/tapis/apps"
+      "name": "io.flexserv.ssh.keypair",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/flexserv/ssh/keypair"
     },
     {
-      "name": "io.tapis.systems",
-      "version": "0.1.0",
-      "path": "fcs_tools/io/tapis/systems"
-    },
-    {
-      "name": "io.tapis.context",
-      "version": "0.1.0",
-      "path": "fcs_tools/io/tapis/context"
+      "name": "io.flexserv.ssh.target",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/flexserv/ssh/target"
     },
     {
       "name": "io.tapis.access",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "path": "fcs_tools/io/tapis/access"
     },
     {
+      "name": "io.tapis.apps",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/tapis/apps"
+    },
+    {
+      "name": "io.tapis.context",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/tapis/context"
+    },
+    {
       "name": "io.tapis.files",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "path": "fcs_tools/io/tapis/files"
     },
     {
+      "name": "io.tapis.flexserv",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/tapis/flexserv"
+    },
+    {
+      "name": "io.tapis.jobs",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/tapis/jobs"
+    },
+    {
+      "name": "io.tapis.jobs.outputs",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/tapis/jobs/outputs"
+    },
+    {
       "name": "io.tapis.pods",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "path": "fcs_tools/io/tapis/pods"
+    },
+    {
+      "name": "io.tapis.responses",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/tapis/responses"
+    },
+    {
+      "name": "io.tapis.systems",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/tapis/systems"
+    },
+    {
+      "name": "io.tapis.systems.credentials",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/tapis/systems/credentials"
+    },
+    {
+      "name": "io.tapis.workflows",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/tapis/workflows"
     }
   ]
 }

@@ -1,0 +1,56 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.tapis.files.read_prefix
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.tapis.files.read_prefix (bounded, owner-authorized workflow component)
+    parameters_schema:
+      type: object
+      properties:
+        location: &id001
+          type: object
+        max_bytes:
+          type: integer
+          minimum: 1
+          maximum: 65536
+      required:
+      - location
+      - max_bytes
+      additionalProperties: false
+    output_schema: *id001
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: prepare
+    kind: bashkit
+    script: scripts/prepare.sh
+    input: '{{params}}'
+    uses: {}
+  - id: request
+    kind: rest
+    request: '{{steps.prepare}}'
+    auth:
+      header_passthrough:
+      - X-TAPIS-TOKEN
+      inject:
+        headers:
+          X-TAPIS-TOKEN: '{{secret.tapis_token}}'
+      required_headers:
+      - X-TAPIS-TOKEN
+  secret_refs:
+    tapis_token: tapis.access_token
+  result: '{{steps.request}}'

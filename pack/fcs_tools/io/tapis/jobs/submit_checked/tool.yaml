@@ -1,0 +1,44 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.tapis.jobs.submit_checked
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.tapis.jobs.submit_checked (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        definition: &id001
+          type: object
+      required:
+      - definition
+      additionalProperties: false
+    output_schema: *id001
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: submit
+    kind: bashkit
+    script: scripts/submit.sh
+    input: '{{params}}'
+    uses:
+      tool_submit:
+        name: io.tapis.jobs.submit
+        version: 0.12.0
+      tool_confirm:
+        name: io.tapis.responses.require_success
+        version: 1.0.0

@@ -1,0 +1,23 @@
+schema_version: flexserv.toolset.v1alpha2
+kind: ToolSet
+metadata:
+  name: io.tapis.workflows
+  version: 1.0.0
+spec:
+  description: Reusable io.tapis.workflows capabilities
+  tools:
+  - name: io.tapis.workflows.cancel
+    version: 1.0.0
+    path: cancel
+  - name: io.tapis.workflows.provision_and_run
+    version: 1.0.0
+    path: provision_and_run
+  - name: io.tapis.workflows.result
+    version: 1.0.0
+    path: result
+  - name: io.tapis.workflows.status
+    version: 1.0.0
+    path: status
+  - name: io.tapis.workflows.validate_inputs
+    version: 1.0.0
+    path: validate_inputs

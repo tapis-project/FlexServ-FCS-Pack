@@ -1,0 +1,29 @@
+schema_version: flexserv.toolset.v1alpha2
+kind: ToolSet
+metadata:
+  name: io.flexserv.deployments
+  version: 1.0.0
+spec:
+  description: Local runtime, checkpoint and monitored service provisioning
+  tools:
+  - name: io.flexserv.deployments.vllm
+    version: 1.0.0
+    path: vllm
+  - name: io.flexserv.deployments.inspect
+    version: 1.0.0
+    path: inspect
+  - name: io.flexserv.deployments.stop
+    version: 1.0.0
+    path: stop
+  - name: io.flexserv.deployments.status
+    version: 1.0.0
+    path: status
+  - name: io.flexserv.deployments.result
+    version: 1.0.0
+    path: result
+  - name: io.flexserv.deployments.cancel
+    version: 1.0.0
+    path: cancel
+  - name: io.flexserv.deployments.output
+    version: 1.0.0
+    path: output

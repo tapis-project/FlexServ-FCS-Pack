@@ -1,33 +1,49 @@
-schema_version: flexserv.tool.v1alpha1
+schema_version: flexserv.tool.v1alpha2
 kind: Tool
 metadata:
   name: io.tapis.systems.search
-  version: 0.1.0
-  labels: { execution_types: "REST", tapis_domain: systems, pack: tapis-core }
+  version: 0.12.0
+  visibility: true
+  labels:
+    pack: tapis-core
 spec:
   contract:
-    description: Search Tapis systems using the Systems search expression syntax.
-    read_only: true
-    concurrency_safe: true
-    required_scopes: ["tapis:systems:read"]
+    description: Tapis systems.search
     parameters_schema:
       type: object
-      additionalProperties: false
       properties:
-        search: { type: string, description: "Example: (id.like.stampede*)~(enabled.eq.true)" }
-      required: [search]
-  policy:
-    provider: flexserv
-    confirmation: never
-    required_scopes: ["tapis:systems:read"]
-    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
-    resources: { timeout_ms: 10000, rate_limit_per_minute: 60 }
+        query:
+          type: array
+          maxItems: 32
+          items:
+            type: array
+            prefixItems:
+            - type: string
+            - type: string
+              maxLength: 2048
+            items: false
+            minItems: 2
+            maxItems: 2
+      required: []
+      additionalProperties: false
+    output_schema:
+      type: object
+  secret_refs:
+    tapis_token: tapis.access_token
   steps:
-    - id: search_systems
-      kind: rest
-      method: GET
-      url: "{{secrets.base_url}}/v3/systems?search={{input.search}}"
-      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
-      headers: { X-Tapis-Token: "{{secrets.access_token}}" }
-      response: { type: json }
-      timeout_ms: 10000
+  - id: call
+    kind: rest
+    caller: tapis
+    auth:
+      header_passthrough:
+      - X-TAPIS-TOKEN
+      inject:
+        headers:
+          X-TAPIS-TOKEN: '{{secret.tapis_token}}'
+      required_headers:
+      - X-TAPIS-TOKEN
+      priority: header
+    request:
+      connection: tapis
+      operation: systems.search
+      params: '{{params}}'

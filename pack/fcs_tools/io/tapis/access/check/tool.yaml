@@ -1,41 +1,50 @@
-schema_version: flexserv.tool.v1alpha1
+schema_version: flexserv.tool.v1alpha2
 kind: Tool
 metadata:
   name: io.tapis.access.check
-  version: 0.1.0
-  labels: { execution_types: "REST", tapis_domain: security, pack: tapis-core }
+  version: 0.12.0
+  visibility: true
+  labels:
+    pack: tapis-core
 spec:
   contract:
-    description: Check whether a Tapis user has a permission in a tenant.
-    read_only: true
-    concurrency_safe: true
-    required_scopes: ["tapis:access:check"]
+    description: Check explicit Tapis system permissions, NOT complete POSIX/role/ownership
+      effective access. Unknown response shape returns indeterminate.
     parameters_schema:
       type: object
-      additionalProperties: false
       properties:
-        tenant: { type: string }
-        user: { type: string }
-        perm_spec: { type: string }
-        or_admin: { type: boolean }
-      required: [tenant, user, perm_spec, or_admin]
-  policy:
-    provider: flexserv
-    confirmation: never
-    required_scopes: ["tapis:access:check"]
-    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
-    resources: { timeout_ms: 10000, rate_limit_per_minute: 60 }
+        system_id: &id001
+          type: string
+          minLength: 1
+          maxLength: 256
+        username: *id001
+        permission:
+          enum:
+          - READ
+          - MODIFY
+          - EXECUTE
+      required:
+      - system_id
+      - username
+      - permission
+      additionalProperties: false
+    output_schema:
+      type: object
+  secret_refs:
+    tapis_token: tapis.access_token
   steps:
-    - id: check_permission
-      kind: rest
-      method: POST
-      url: "{{secrets.base_url}}/v3/security/user/isPermitted"
-      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
-      headers: { Content-Type: application/json, X-Tapis-Token: "{{secrets.access_token}}" }
-      body:
-        tenant: "{{input.tenant}}"
-        user: "{{input.user}}"
-        permSpec: "{{input.perm_spec}}"
-        orAdmin: "{{input.or_admin}}"
-      response: { type: json }
-      timeout_ms: 10000
+  - id: call
+    kind: rest
+    caller: tapis
+    auth:
+      header_passthrough:
+      - X-TAPIS-TOKEN
+      inject:
+        headers:
+          X-TAPIS-TOKEN: '{{secret.tapis_token}}'
+      required_headers:
+      - X-TAPIS-TOKEN
+    request:
+      connection: tapis
+      operation: access.check
+      params: '{{params}}'

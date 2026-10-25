@@ -1,0 +1,3 @@
+# Verified Pack script; no host shell fallback.
+set -eu
+printf '%s' "$FCS_INPUT_JSON" | jq '{system_id:.system.system_id,app_id:.app.app_id,app_version:.app.app_version,job_uuid:.submitted.job_uuid,status:.captured.job.status,condition:.captured.job.condition,last_message:.captured.job.last_message,job_succeeded:(if .captured.job.status=="FINISHED" then true elif (.captured.job.status=="FAILED" or .captured.job.status=="CANCELLED") then false else null end),state_observation:{stop_reason:.wait.stop_reason,attempts:.wait.attempts},token:{found:.captured.token_found,reference:.captured.token_ref,reason:.captured.reason,truncated:.captured.truncated,observation:.captured.observation},service_readiness:"not_checked"}'

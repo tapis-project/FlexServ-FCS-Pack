@@ -1,0 +1,383 @@
+{
+  "$defs": {
+    "AcceleratorFamily": {
+      "description": "Supported accelerator families are separate from administrator-owned site labels.",
+      "enum": [
+        "cuda",
+        "rocm",
+        "xpu"
+      ],
+      "type": "string"
+    },
+    "AcceleratorTuning": {
+      "additionalProperties": false,
+      "description": "Authorized accelerator tuning overrides inspected defaults, never physical facts.",
+      "properties": {
+        "accelerator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AcceleratorFamily"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "engine_defaults": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EngineDefaults"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "environment": {
+          "additionalProperties": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "maxProperties": 32,
+          "propertyNames": {
+            "enum": [
+              "PYTHONUNBUFFERED",
+              "VLLM_WORKER_MULTIPROC_METHOD",
+              "CUDA_VISIBLE_DEVICES",
+              "ROCR_VISIBLE_DEVICES",
+              "HIP_VISIBLE_DEVICES",
+              "ZE_AFFINITY_MASK",
+              "ONEAPI_DEVICE_SELECTOR",
+              "VLLM_XPU_ENABLE_XPU_GRAPH",
+              "VLLM_ATTENTION_BACKEND",
+              "VLLM_MLA_DISABLE",
+              "LD_LIBRARY_PATH"
+            ]
+          },
+          "type": "object"
+        },
+        "gb10_mla_guard": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "unset": {
+          "items": {
+            "enum": [
+              "PYTHONUNBUFFERED",
+              "VLLM_WORKER_MULTIPROC_METHOD",
+              "CUDA_VISIBLE_DEVICES",
+              "ROCR_VISIBLE_DEVICES",
+              "HIP_VISIBLE_DEVICES",
+              "ZE_AFFINITY_MASK",
+              "ONEAPI_DEVICE_SELECTOR",
+              "VLLM_XPU_ENABLE_XPU_GRAPH",
+              "VLLM_ATTENTION_BACKEND",
+              "VLLM_MLA_DISABLE",
+              "LD_LIBRARY_PATH"
+            ]
+          },
+          "maxItems": 32,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "EngineDefaults": {
+      "additionalProperties": false,
+      "description": "Canonical engine defaults remain explicit; no arbitrary engine option is introduced.",
+      "properties": {
+        "attention_backend": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dtype": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "enforce_eager": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "gpu_memory_utilization": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MemoryFraction"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kv_cache_dtype": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "language_model_only": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "load_format": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "moe_backend": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "MemoryFraction": {
+      "description": "A fraction is accepted only in the range supported by vLLM's executor option.",
+      "exclusiveMinimum": 0.0,
+      "format": "double",
+      "maximum": 1.0,
+      "type": "number"
+    },
+    "NetworkTuning": {
+      "additionalProperties": false,
+      "description": "Network tuning names reviewed choices; it cannot supply arbitrary destinations.",
+      "properties": {
+        "accelerator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AcceleratorFamily"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "environment": {
+          "additionalProperties": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "maxProperties": 32,
+          "propertyNames": {
+            "enum": [
+              "LOCAL_IP",
+              "VLLM_HOST_IP",
+              "NCCL_NET",
+              "NCCL_IB_DISABLE",
+              "NCCL_IB_HCA",
+              "NCCL_SOCKET_IFNAME",
+              "NCCL_SOCKET_FAMILY",
+              "NCCL_IB_GID_INDEX",
+              "NCCL_IB_ADDR_RANGE",
+              "NCCL_IB_ADDR_FAMILY",
+              "NCCL_IB_ROCE_VERSION_NUM",
+              "NCCL_DEBUG",
+              "NCCL_DEBUG_SUBSYS",
+              "GLOO_SOCKET_IFNAME",
+              "FI_PROVIDER",
+              "FI_PROVIDER_PATH",
+              "FI_TCP_IFACE",
+              "FI_VERBS_IFACE",
+              "FI_VERBS_DEVICE_NAME",
+              "CCL_ATL_TRANSPORT",
+              "CCL_ZE_IPC_EXCHANGE"
+            ]
+          },
+          "type": "object"
+        },
+        "hca": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "interface": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transport": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Transport"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unset": {
+          "items": {
+            "enum": [
+              "LOCAL_IP",
+              "VLLM_HOST_IP",
+              "NCCL_NET",
+              "NCCL_IB_DISABLE",
+              "NCCL_IB_HCA",
+              "NCCL_SOCKET_IFNAME",
+              "NCCL_SOCKET_FAMILY",
+              "NCCL_IB_GID_INDEX",
+              "NCCL_IB_ADDR_RANGE",
+              "NCCL_IB_ADDR_FAMILY",
+              "NCCL_IB_ROCE_VERSION_NUM",
+              "NCCL_DEBUG",
+              "NCCL_DEBUG_SUBSYS",
+              "GLOO_SOCKET_IFNAME",
+              "FI_PROVIDER",
+              "FI_PROVIDER_PATH",
+              "FI_TCP_IFACE",
+              "FI_VERBS_IFACE",
+              "FI_VERBS_DEVICE_NAME",
+              "CCL_ATL_TRANSPORT",
+              "CCL_ZE_IPC_EXCHANGE"
+            ]
+          },
+          "maxItems": 32,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "SecretRef": {
+      "additionalProperties": false,
+      "description": "Secret capabilities contain references only, never plaintext credential values.",
+      "properties": {
+        "secret_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "secret_ref"
+      ],
+      "type": "object"
+    },
+    "Transport": {
+      "description": "Transport intent is checked against actual providers and administrator grants.",
+      "enum": [
+        "auto",
+        "socket",
+        "rdma"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The public workflow parameters are intentionally independent of fixed profile names.",
+  "properties": {
+    "accelerator": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AcceleratorTuning"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "aiperf_version": {
+      "maxLength": 80,
+      "minLength": 1,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "backend_alias": {
+      "pattern": "^[A-Za-z0-9_-]{1,64}$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "hardware_env": {
+      "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+      "type": "string"
+    },
+    "hf_token_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SecretRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "model_id": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "type": "string"
+    },
+    "network": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NetworkTuning"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "provider_model_id": {
+      "maxLength": 512,
+      "minLength": 1,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "venv_root_dir": {
+      "minLength": 1,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "vllm_args": {
+      "default": [],
+      "items": {
+        "maxLength": 4096,
+        "type": "string"
+      },
+      "maxItems": 128,
+      "type": "array"
+    },
+    "vllm_version": {
+      "maxLength": 80,
+      "minLength": 1,
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "model_id",
+    "hardware_env"
+  ],
+  "title": "DeploymentParameters",
+  "type": "object"
+}

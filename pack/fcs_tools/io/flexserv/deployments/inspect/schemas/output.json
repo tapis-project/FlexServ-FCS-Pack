@@ -1,0 +1,596 @@
+{
+  "$defs": {
+    "CanonicalName": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[a-z0-9_-]+(?:\\.[a-z0-9_-]+)*$",
+      "type": "string"
+    },
+    "DeploymentOutput": {
+      "additionalProperties": false,
+      "description": "Existing safe deployment association, without backend credentials.",
+      "properties": {
+        "alias": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "archive_error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cleanup_pending": {
+          "type": "boolean"
+        },
+        "credential_binding": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deployment_id": {
+          "type": "string"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "generation": {
+          "type": "string"
+        },
+        "health": {
+          "type": "string"
+        },
+        "model_id": {
+          "type": "string"
+        },
+        "origin": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ServiceOrigin"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "owner": {
+          "type": "string"
+        },
+        "process_generation": {
+          "type": "string"
+        },
+        "process_id": {
+          "type": "string"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "report_pending": {
+          "type": "boolean"
+        },
+        "reports": {
+          "items": {
+            "$ref": "#/$defs/ReportReference"
+          },
+          "maxItems": 16,
+          "type": "array"
+        },
+        "root": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "deployment_id",
+        "process_id",
+        "generation",
+        "process_generation",
+        "owner",
+        "profile",
+        "root",
+        "endpoint",
+        "model_id",
+        "health",
+        "cleanup_pending"
+      ],
+      "type": "object"
+    },
+    "HandleKind": {
+      "description": "Local resource kind prevents a workflow handle from masquerading as a process/vault grant.",
+      "oneOf": [
+        {
+          "const": "workflow",
+          "description": "An owner-bound local workflow run.",
+          "type": "string"
+        },
+        {
+          "const": "operation",
+          "description": "A local network or aggregate runtime operation.",
+          "type": "string"
+        },
+        {
+          "const": "process",
+          "description": "A process owned by the existing local supervisor.",
+          "type": "string"
+        },
+        {
+          "const": "artifact",
+          "description": "A bounded managed result artifact.",
+          "type": "string"
+        },
+        {
+          "const": "cursor",
+          "description": "A source-specific observation position, never a permission token.",
+          "type": "string"
+        }
+      ]
+    },
+    "Identifier": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "type": "string"
+    },
+    "OutputSource": {
+      "description": "Managed process channels preserve the existing output cursor contract.",
+      "enum": [
+        "stdout",
+        "stderr",
+        "file"
+      ],
+      "type": "string"
+    },
+    "PrincipalName": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "type": "string"
+    },
+    "ProcessHealth": {
+      "additionalProperties": false,
+      "description": "Probe state never includes raw response bodies, headers or command output.",
+      "properties": {
+        "consecutive_failures": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "last_checked_unix_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "last_duration_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "last_exit_code": {
+          "format": "int32",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "last_result": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "monitor_error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stale": {
+          "type": "boolean"
+        },
+        "state": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "state",
+        "consecutive_failures",
+        "stale"
+      ],
+      "type": "object"
+    },
+    "ProcessLogs": {
+      "additionalProperties": false,
+      "description": "Retained logs publish bounded evidence without exposing arbitrary file handles.",
+      "properties": {
+        "dropped_bytes": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "error": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "first_loss_utc": {
+          "default": null,
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "history_truncated": {
+          "default": false,
+          "type": "boolean"
+        },
+        "last_loss_utc": {
+          "default": null,
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "paused": {
+          "default": false,
+          "type": "boolean"
+        },
+        "retained_bytes": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "retained_segments": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "segments": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "segments_omitted": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "ProcessSnapshot": {
+      "additionalProperties": false,
+      "description": "The wire process snapshot is shared conceptually with supervisor status.",
+      "properties": {
+        "archive_error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cleanup_pending": {
+          "default": false,
+          "type": "boolean"
+        },
+        "definition": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exit_code": {
+          "format": "int32",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "expected_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "generated_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "generation_complete": {
+          "type": "boolean"
+        },
+        "health": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProcessHealth"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "log_file": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "logs": {
+          "$ref": "#/$defs/ProcessLogs",
+          "default": {
+            "dropped_bytes": 0,
+            "error": null,
+            "first_loss_utc": null,
+            "history_truncated": false,
+            "last_loss_utc": null,
+            "paused": false,
+            "retained_bytes": 0,
+            "retained_segments": 0,
+            "segments": [],
+            "segments_omitted": 0
+          }
+        },
+        "mode": {
+          "$ref": "#/$defs/OutputSource"
+        },
+        "output_truncated_bytes": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "parent_process_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pid": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "process_id": {
+          "type": "string"
+        },
+        "process_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "program": {
+          "type": "string"
+        },
+        "reaped": {
+          "type": "boolean"
+        },
+        "report_pending": {
+          "type": "boolean"
+        },
+        "reports": {
+          "description": "Bounded saved diagnostic references remain separate from OS cleanup status.",
+          "items": {
+            "$ref": "#/$defs/ReportReference"
+          },
+          "maxItems": 16,
+          "type": "array"
+        },
+        "state": {
+          "type": "string"
+        },
+        "termination_reason": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "process_id",
+        "pid",
+        "program",
+        "mode",
+        "expected_count",
+        "generated_count",
+        "generation_complete",
+        "state",
+        "reaped"
+      ],
+      "type": "object"
+    },
+    "ReportMediaType": {
+      "description": "Only bounded UTF-8 diagnostic formats are served through the report endpoint.",
+      "enum": [
+        "application/json",
+        "text/plain"
+      ],
+      "type": "string"
+    },
+    "ReportRecordKind": {
+      "description": "Registered archive namespace; IDs alone never select a filesystem subtree.",
+      "enum": [
+        "operation",
+        "workflow",
+        "process"
+      ],
+      "type": "string"
+    },
+    "ReportReference": {
+      "additionalProperties": false,
+      "description": "Saved provenance survives volatile record eviction, but grants no cross-owner access.",
+      "properties": {
+        "content_sha256": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "deployment_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "epoch": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "instance_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Identifier"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "job_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "kind": {
+          "$ref": "#/$defs/ReportRecordKind"
+        },
+        "media_type": {
+          "$ref": "#/$defs/ReportMediaType"
+        },
+        "owner": {
+          "$ref": "#/$defs/PrincipalName"
+        },
+        "record_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "report_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "maximum": 65536,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "record_id",
+        "report_id",
+        "owner",
+        "job_id",
+        "deployment_id",
+        "run_id",
+        "epoch",
+        "content_sha256",
+        "size_bytes",
+        "media_type"
+      ],
+      "type": "object"
+    },
+    "RuntimeHandle": {
+      "additionalProperties": false,
+      "description": "An origin-bound reference, not a portable resource or bearer credential.",
+      "properties": {
+        "deployment_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "epoch": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "handle_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "instance_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "kind": {
+          "$ref": "#/$defs/HandleKind"
+        },
+        "local_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "owner": {
+          "$ref": "#/$defs/PrincipalName"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "tool": {
+          "$ref": "#/$defs/CanonicalName"
+        }
+      },
+      "required": [
+        "handle_id",
+        "kind",
+        "owner",
+        "deployment_id",
+        "run_id",
+        "instance_id",
+        "epoch",
+        "tool",
+        "local_id"
+      ],
+      "type": "object"
+    },
+    "ServiceOrigin": {
+      "additionalProperties": false,
+      "description": "Both IDs are necessary: the Gateway operation is not the FCS local root UUID.",
+      "properties": {
+        "operation_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "workflow": {
+          "$ref": "#/$defs/RuntimeHandle"
+        }
+      },
+      "required": [
+        "operation_id",
+        "workflow"
+      ],
+      "type": "object"
+    },
+    "Sha256Hex": {
+      "maxLength": 64,
+      "minLength": 64,
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Inspection and stop retain their existing public deployment/process pair.",
+  "properties": {
+    "deployment": {
+      "$ref": "#/$defs/DeploymentOutput"
+    },
+    "process": {
+      "$ref": "#/$defs/ProcessSnapshot"
+    }
+  },
+  "required": [
+    "deployment",
+    "process"
+  ],
+  "title": "DeploymentInspectionOutput",
+  "type": "object"
+}

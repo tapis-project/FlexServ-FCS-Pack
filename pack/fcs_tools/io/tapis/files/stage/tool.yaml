@@ -1,36 +1,52 @@
-schema_version: flexserv.tool.v1alpha1
+schema_version: flexserv.tool.v1alpha2
 kind: Tool
 metadata:
   name: io.tapis.files.stage
-  version: 0.1.0
-  labels: { execution_types: "REST", tapis_domain: files, pack: tapis-files }
+  version: 0.12.0
+  visibility: true
+  labels:
+    pack: tapis-files
 spec:
   contract:
-    description: Stage one source URI to one destination URI through a Tapis transfer task.
-    read_only: false
-    concurrency_safe: true
-    required_scopes: ["tapis:files:write"]
+    description: Upload an authorized local artifact with the Tapis multipart 'file'
+      field; does not accept arbitrary host paths.
     parameters_schema:
       type: object
+      properties:
+        system_id: &id001
+          type: string
+          minLength: 1
+          maxLength: 256
+        path:
+          type: string
+          maxLength: 2048
+          description: Relative system path; no empty interior, dot, parent, percent
+            or backslash segments.
+        artifact_id: *id001
+        filename: *id001
+      required:
+      - system_id
+      - path
+      - artifact_id
+      - filename
       additionalProperties: false
-      properties: { source_uri: { type: string }, destination_uri: { type: string } }
-      required: [source_uri, destination_uri]
-  policy:
-    provider: flexserv
-    confirmation: always
-    required_scopes: ["tapis:files:write"]
-    network: { allowed_hosts: ["tapis.io"], allowed_schemes: ["https"], require_tls_for_remote: true }
-    resources: { timeout_ms: 30000, rate_limit_per_minute: 30 }
+    output_schema:
+      type: object
+  secret_refs:
+    tapis_token: tapis.access_token
   steps:
-    - id: stage_file
-      kind: rest
-      method: POST
-      url: "{{secrets.base_url}}/v3/files/transfers"
-      secret_refs: { base_url: tapis.base_url, access_token: tapis.access_token }
-      headers: { Content-Type: application/json, X-Tapis-Token: "{{secrets.access_token}}" }
-      body:
-        elements:
-          - sourceURI: "{{input.source_uri}}"
-            destinationURI: "{{input.destination_uri}}"
-      response: { type: json }
-      timeout_ms: 30000
+  - id: call
+    kind: rest
+    caller: tapis
+    auth:
+      header_passthrough:
+      - X-TAPIS-TOKEN
+      inject:
+        headers:
+          X-TAPIS-TOKEN: '{{secret.tapis_token}}'
+      required_headers:
+      - X-TAPIS-TOKEN
+    request:
+      connection: tapis
+      operation: files.stage
+      params: '{{params}}'

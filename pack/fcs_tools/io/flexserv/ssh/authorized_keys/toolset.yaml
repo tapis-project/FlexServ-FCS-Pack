@@ -1,0 +1,11 @@
+schema_version: flexserv.toolset.v1alpha2
+kind: ToolSet
+metadata:
+  name: io.flexserv.ssh.authorized_keys
+  version: 1.0.0
+spec:
+  description: Reusable io.flexserv.ssh.authorized_keys capabilities
+  tools:
+  - name: io.flexserv.ssh.authorized_keys.install
+    version: 1.0.0
+    path: install

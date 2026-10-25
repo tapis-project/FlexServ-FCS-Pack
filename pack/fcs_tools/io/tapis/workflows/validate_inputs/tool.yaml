@@ -1,0 +1,88 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.tapis.workflows.validate_inputs
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.tapis.workflows.validate_inputs (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        system: &id001
+          type: object
+        app: *id001
+        job: *id001
+        target: &id002
+          type: string
+          minLength: 1
+          maxLength: 4096
+        ssh_provider:
+          enum:
+          - rust
+          - cli
+        output:
+          type: object
+          properties:
+            source:
+              enum:
+              - application
+              - stdout
+              - archive
+            file: *id002
+            marker:
+              type: string
+              minLength: 1
+              maxLength: 256
+              pattern: ^[^\r\n]+$
+            match:
+              enum:
+              - prefix
+              - after_literal
+            max_bytes:
+              type: integer
+              minimum: 1
+              maximum: 65536
+            max_lines:
+              type: integer
+              minimum: 1
+              maximum: 200
+          required: []
+          additionalProperties: false
+      required:
+      - system
+      - app
+      - job
+      - target
+      additionalProperties: false
+    output_schema: *id001
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: target
+    kind: call
+    tool:
+      name: io.flexserv.ssh.target.resolve
+      version: 1.0.0
+    input:
+      target: '{{params.target}}'
+  - id: validate
+    kind: bashkit
+    script: scripts/validate.sh
+    input:
+      params: '{{params}}'
+      target: '{{steps.target}}'
+    uses: {}

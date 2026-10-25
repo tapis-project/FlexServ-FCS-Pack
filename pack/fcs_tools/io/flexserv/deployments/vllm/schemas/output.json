@@ -1,0 +1,1126 @@
+{
+  "$defs": {
+    "AcceleratorKind": {
+      "description": "A singleton kind prevents references from silently crossing resource domains.",
+      "enum": [
+        "accelerator"
+      ],
+      "type": "string"
+    },
+    "AcceleratorOutput": {
+      "additionalProperties": false,
+      "description": "Accelerator preparation returns a reference rather than caller-controlled launch settings.",
+      "properties": {
+        "accelerator_ref": {
+          "$ref": "#/$defs/AcceleratorRef"
+        },
+        "devices": {
+          "items": {
+            "$ref": "#/$defs/DeviceBudget"
+          },
+          "type": "array"
+        },
+        "engine_defaults": {
+          "$ref": "#/$defs/EngineDefaults"
+        },
+        "environment": {
+          "items": {
+            "$ref": "#/$defs/EnvironmentEntry"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        "memory": {
+          "$ref": "#/$defs/MemorySummary"
+        },
+        "observed_at_unix_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "simulated": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "accelerator_ref",
+        "simulated",
+        "environment",
+        "engine_defaults",
+        "devices",
+        "memory",
+        "observed_at_unix_ms"
+      ],
+      "type": "object"
+    },
+    "AcceleratorRef": {
+      "additionalProperties": false,
+      "description": "Typed opaque ledger reference; caller projections never grant ownership.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/AcceleratorKind"
+        },
+        "resource_ref": {
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource_ref",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "CanonicalName": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[a-z0-9_-]+(?:\\.[a-z0-9_-]+)*$",
+      "type": "string"
+    },
+    "CheckpointKind": {
+      "description": "A singleton kind prevents references from silently crossing resource domains.",
+      "enum": [
+        "checkpoint"
+      ],
+      "type": "string"
+    },
+    "CheckpointRef": {
+      "additionalProperties": false,
+      "description": "Typed opaque ledger reference; caller projections never grant ownership.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/CheckpointKind"
+        },
+        "resource_ref": {
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource_ref",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "DeploymentOutput": {
+      "additionalProperties": false,
+      "description": "Existing safe deployment association, without backend credentials.",
+      "properties": {
+        "alias": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "archive_error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cleanup_pending": {
+          "type": "boolean"
+        },
+        "credential_binding": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deployment_id": {
+          "type": "string"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "generation": {
+          "type": "string"
+        },
+        "health": {
+          "type": "string"
+        },
+        "model_id": {
+          "type": "string"
+        },
+        "origin": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ServiceOrigin"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "owner": {
+          "type": "string"
+        },
+        "process_generation": {
+          "type": "string"
+        },
+        "process_id": {
+          "type": "string"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "report_pending": {
+          "type": "boolean"
+        },
+        "reports": {
+          "items": {
+            "$ref": "#/$defs/ReportReference"
+          },
+          "maxItems": 16,
+          "type": "array"
+        },
+        "root": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "deployment_id",
+        "process_id",
+        "generation",
+        "process_generation",
+        "owner",
+        "profile",
+        "root",
+        "endpoint",
+        "model_id",
+        "health",
+        "cleanup_pending"
+      ],
+      "type": "object"
+    },
+    "DeviceBudget": {
+      "additionalProperties": false,
+      "description": "Per-device memory is physical-byte accounting and a report-only 85% estimate.",
+      "properties": {
+        "budget_85_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "free_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "pci_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "physical_id": {
+          "type": "string"
+        },
+        "runtime_ordinal": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "total_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "uuid": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "physical_id",
+        "runtime_ordinal"
+      ],
+      "type": "object"
+    },
+    "EngineDefaults": {
+      "additionalProperties": false,
+      "description": "Canonical engine defaults remain explicit; no arbitrary engine option is introduced.",
+      "properties": {
+        "attention_backend": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dtype": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "enforce_eager": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "gpu_memory_utilization": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MemoryFraction"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kv_cache_dtype": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "language_model_only": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "load_format": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "moe_backend": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "EnvironmentEntry": {
+      "additionalProperties": false,
+      "description": "Recent decision evidence is bounded rather than accumulated as unbounded history.",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/EnvironmentState"
+        },
+        "value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "state",
+        "source",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "EnvironmentOutput": {
+      "additionalProperties": false,
+      "description": "Inspection failures produce structured absence without manufacturing a runtime reference.",
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "runtime_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "simulated": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "venv_path": {
+          "type": "string"
+        },
+        "versions": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeVersions"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "available",
+        "venv_path"
+      ],
+      "type": "object"
+    },
+    "EnvironmentState": {
+      "description": "Environment decisions contain only reviewed non-secret tuning values.",
+      "enum": [
+        "set",
+        "unset",
+        "auto",
+        "not_applicable"
+      ],
+      "type": "string"
+    },
+    "FabricValidation": {
+      "description": "This round verifies local capability, never remote RDMA connectivity.",
+      "enum": [
+        "local_only"
+      ],
+      "type": "string"
+    },
+    "HandleKind": {
+      "description": "Local resource kind prevents a workflow handle from masquerading as a process/vault grant.",
+      "oneOf": [
+        {
+          "const": "workflow",
+          "description": "An owner-bound local workflow run.",
+          "type": "string"
+        },
+        {
+          "const": "operation",
+          "description": "A local network or aggregate runtime operation.",
+          "type": "string"
+        },
+        {
+          "const": "process",
+          "description": "A process owned by the existing local supervisor.",
+          "type": "string"
+        },
+        {
+          "const": "artifact",
+          "description": "A bounded managed result artifact.",
+          "type": "string"
+        },
+        {
+          "const": "cursor",
+          "description": "A source-specific observation position, never a permission token.",
+          "type": "string"
+        }
+      ]
+    },
+    "Identifier": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "type": "string"
+    },
+    "InternalNetwork": {
+      "additionalProperties": false,
+      "description": "Internal ports are only populated for an actually configured local communication path.",
+      "properties": {
+        "host_ip": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ports": {
+          "items": {
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "ports"
+      ],
+      "type": "object"
+    },
+    "ManifestKind": {
+      "description": "A singleton kind prevents references from silently crossing resource domains.",
+      "enum": [
+        "manifest"
+      ],
+      "type": "string"
+    },
+    "ManifestOutput": {
+      "additionalProperties": false,
+      "description": "Immutable manifest identity and bounded file count.",
+      "properties": {
+        "commit": {
+          "pattern": "^[0-9a-fA-F]{40}$",
+          "type": "string"
+        },
+        "files": {
+          "format": "uint32",
+          "maximum": 512,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "manifest_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "manifest_ref": {
+          "$ref": "#/$defs/ManifestRef"
+        }
+      },
+      "required": [
+        "manifest_ref",
+        "commit",
+        "manifest_digest",
+        "files"
+      ],
+      "type": "object"
+    },
+    "ManifestRef": {
+      "additionalProperties": false,
+      "description": "Typed opaque ledger reference; caller projections never grant ownership.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ManifestKind"
+        },
+        "resource_ref": {
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource_ref",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "MemoryFraction": {
+      "description": "A fraction is accepted only in the range supported by vLLM's executor option.",
+      "exclusiveMinimum": 0.0,
+      "format": "double",
+      "maximum": 1.0,
+      "type": "number"
+    },
+    "MemorySummary": {
+      "additionalProperties": false,
+      "description": "An aggregate is not a continuous allocation or a claim that a model will fit.",
+      "properties": {
+        "budget_85_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "device_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "free_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "total_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "device_count"
+      ],
+      "type": "object"
+    },
+    "ModelEnsureOutput": {
+      "additionalProperties": false,
+      "description": "A verified checkpoint handle is absent until every selected file is complete.",
+      "properties": {
+        "checkpoint_path": {
+          "type": "string"
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "manifest": {
+          "$ref": "#/$defs/ManifestOutput"
+        },
+        "missing": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 512,
+          "type": "array"
+        },
+        "verified_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "verified_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CheckpointRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "complete",
+        "missing",
+        "verified_bytes",
+        "checkpoint_path",
+        "manifest"
+      ],
+      "type": "object"
+    },
+    "NetworkPlanKind": {
+      "description": "A singleton kind prevents references from silently crossing resource domains.",
+      "enum": [
+        "network_plan"
+      ],
+      "type": "string"
+    },
+    "NetworkPlanOutput": {
+      "additionalProperties": false,
+      "description": "A resolved collective plan preserves its separate owner-scoped identity.",
+      "properties": {
+        "communication_backend": {
+          "type": "string"
+        },
+        "environment": {
+          "items": {
+            "$ref": "#/$defs/EnvironmentEntry"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        "fabric_validation": {
+          "$ref": "#/$defs/FabricValidation"
+        },
+        "internal_network": {
+          "$ref": "#/$defs/InternalNetwork"
+        },
+        "network_plan_ref": {
+          "$ref": "#/$defs/NetworkPlanRef"
+        },
+        "service_network": {
+          "$ref": "#/$defs/ServiceNetwork"
+        },
+        "simulated": {
+          "type": "boolean"
+        },
+        "transport": {
+          "$ref": "#/$defs/Transport"
+        }
+      },
+      "required": [
+        "network_plan_ref",
+        "simulated",
+        "environment",
+        "transport",
+        "communication_backend",
+        "service_network",
+        "internal_network",
+        "fabric_validation"
+      ],
+      "type": "object"
+    },
+    "NetworkPlanRef": {
+      "additionalProperties": false,
+      "description": "Typed opaque ledger reference; caller projections never grant ownership.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/NetworkPlanKind"
+        },
+        "resource_ref": {
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource_ref",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "PrincipalName": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "type": "string"
+    },
+    "ReportMediaType": {
+      "description": "Only bounded UTF-8 diagnostic formats are served through the report endpoint.",
+      "enum": [
+        "application/json",
+        "text/plain"
+      ],
+      "type": "string"
+    },
+    "ReportRecordKind": {
+      "description": "Registered archive namespace; IDs alone never select a filesystem subtree.",
+      "enum": [
+        "operation",
+        "workflow",
+        "process"
+      ],
+      "type": "string"
+    },
+    "ReportReference": {
+      "additionalProperties": false,
+      "description": "Saved provenance survives volatile record eviction, but grants no cross-owner access.",
+      "properties": {
+        "content_sha256": {
+          "$ref": "#/$defs/Sha256Hex"
+        },
+        "deployment_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "epoch": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "instance_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Identifier"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "job_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "kind": {
+          "$ref": "#/$defs/ReportRecordKind"
+        },
+        "media_type": {
+          "$ref": "#/$defs/ReportMediaType"
+        },
+        "owner": {
+          "$ref": "#/$defs/PrincipalName"
+        },
+        "record_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "report_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "maximum": 65536,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "record_id",
+        "report_id",
+        "owner",
+        "job_id",
+        "deployment_id",
+        "run_id",
+        "epoch",
+        "content_sha256",
+        "size_bytes",
+        "media_type"
+      ],
+      "type": "object"
+    },
+    "RuntimeHandle": {
+      "additionalProperties": false,
+      "description": "An origin-bound reference, not a portable resource or bearer credential.",
+      "properties": {
+        "deployment_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "epoch": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "handle_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "instance_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "kind": {
+          "$ref": "#/$defs/HandleKind"
+        },
+        "local_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "owner": {
+          "$ref": "#/$defs/PrincipalName"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "tool": {
+          "$ref": "#/$defs/CanonicalName"
+        }
+      },
+      "required": [
+        "handle_id",
+        "kind",
+        "owner",
+        "deployment_id",
+        "run_id",
+        "instance_id",
+        "epoch",
+        "tool",
+        "local_id"
+      ],
+      "type": "object"
+    },
+    "RuntimeKind": {
+      "description": "A singleton kind prevents references from silently crossing resource domains.",
+      "enum": [
+        "runtime"
+      ],
+      "type": "string"
+    },
+    "RuntimeRef": {
+      "additionalProperties": false,
+      "description": "Typed opaque ledger reference; caller projections never grant ownership.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/RuntimeKind"
+        },
+        "resource_ref": {
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource_ref",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "RuntimeVersions": {
+      "additionalProperties": false,
+      "description": "Actual installed package/runtime metadata; availability is checked separately.",
+      "properties": {
+        "accelerator": {
+          "type": "string"
+        },
+        "aiperf": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "communication_backend": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cuda": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "device_count": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "hip": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "huggingface_hub": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "python": {
+          "type": "string"
+        },
+        "torch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "vllm": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "xpu": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "python",
+        "accelerator"
+      ],
+      "type": "object"
+    },
+    "ServiceNetwork": {
+      "additionalProperties": false,
+      "description": "External serving address remains distinct from internal communication settings.",
+      "properties": {
+        "advertise_endpoint": {
+          "type": "string"
+        },
+        "bind": {
+          "type": "string"
+        },
+        "port": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "bind",
+        "advertise_endpoint",
+        "port"
+      ],
+      "type": "object"
+    },
+    "ServiceOrigin": {
+      "additionalProperties": false,
+      "description": "Both IDs are necessary: the Gateway operation is not the FCS local root UUID.",
+      "properties": {
+        "operation_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "workflow": {
+          "$ref": "#/$defs/RuntimeHandle"
+        }
+      },
+      "required": [
+        "operation_id",
+        "workflow"
+      ],
+      "type": "object"
+    },
+    "Sha256Hex": {
+      "maxLength": 64,
+      "minLength": 64,
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "ToolchainKind": {
+      "description": "A singleton kind prevents references from silently crossing resource domains.",
+      "enum": [
+        "toolchain"
+      ],
+      "type": "string"
+    },
+    "ToolchainOutput": {
+      "additionalProperties": false,
+      "description": "A launcher consumes the opaque toolchain reference and rechecks its authority.",
+      "properties": {
+        "environment": {
+          "items": {
+            "$ref": "#/$defs/EnvironmentEntry"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        "jit_verified": {
+          "type": "boolean"
+        },
+        "simulated": {
+          "type": "boolean"
+        },
+        "status": {
+          "$ref": "#/$defs/ToolchainStatus"
+        },
+        "toolchain_ref": {
+          "$ref": "#/$defs/ToolchainRef"
+        },
+        "tools": {
+          "items": {
+            "$ref": "#/$defs/ToolchainTool"
+          },
+          "type": "array"
+        },
+        "validation": {
+          "$ref": "#/$defs/ToolchainValidation"
+        }
+      },
+      "required": [
+        "toolchain_ref",
+        "simulated",
+        "validation",
+        "status",
+        "environment",
+        "tools",
+        "jit_verified"
+      ],
+      "type": "object"
+    },
+    "ToolchainRef": {
+      "additionalProperties": false,
+      "description": "Typed opaque ledger reference; caller projections never grant ownership.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ToolchainKind"
+        },
+        "resource_ref": {
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource_ref",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "ToolchainStatus": {
+      "description": "Static inspection and actual compilation have distinct success states.",
+      "enum": [
+        "checked",
+        "verified",
+        "not_applicable",
+        "insufficient"
+      ],
+      "type": "string"
+    },
+    "ToolchainTool": {
+      "additionalProperties": false,
+      "description": "One compiler or assembler's selected path and safely captured version.",
+      "properties": {
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "role": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "role",
+        "status"
+      ],
+      "type": "object"
+    },
+    "ToolchainValidation": {
+      "description": "Toolchain verification is an explicit host choice, not an inferred graph setting.",
+      "enum": [
+        "inspect",
+        "smoke"
+      ],
+      "type": "string"
+    },
+    "Transport": {
+      "description": "Transport intent is checked against actual providers and administrator grants.",
+      "enum": [
+        "auto",
+        "socket",
+        "rdma"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The root workflow returns safe resources separately from its observation identity.",
+  "properties": {
+    "accelerator": {
+      "$ref": "#/$defs/AcceleratorOutput"
+    },
+    "checkpoint": {
+      "$ref": "#/$defs/ModelEnsureOutput"
+    },
+    "deployment": {
+      "$ref": "#/$defs/DeploymentOutput"
+    },
+    "environment": {
+      "$ref": "#/$defs/EnvironmentOutput"
+    },
+    "network_plan": {
+      "$ref": "#/$defs/NetworkPlanOutput"
+    },
+    "toolchain": {
+      "$ref": "#/$defs/ToolchainOutput"
+    },
+    "workflow_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "deployment",
+    "environment",
+    "checkpoint",
+    "accelerator",
+    "network_plan",
+    "toolchain",
+    "workflow_id"
+  ],
+  "title": "DeploymentWorkflowResult",
+  "type": "object"
+}

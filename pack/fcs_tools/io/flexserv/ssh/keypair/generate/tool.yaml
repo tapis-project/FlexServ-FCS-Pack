@@ -1,0 +1,40 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.ssh.keypair.generate
+  version: 1.0.0
+  visibility: false
+spec:
+  contract:
+    description: io.flexserv.ssh.keypair.generate (bounded, owner-authorized workflow
+      component)
+    parameters_schema:
+      type: object
+      properties:
+        profile:
+          type: string
+          minLength: 1
+          maxLength: 4096
+      required:
+      - profile
+      additionalProperties: false
+    output_schema:
+      type: object
+  policy:
+    resources:
+    - local_login
+    - ssh_keys
+    - ssh_workspace
+    - service_tokens
+    programs:
+    - bash
+    filesystem:
+      read:
+      - /
+      write:
+      - '{{host.SCRATCH}}/'
+  steps:
+  - id: execute
+    kind: native
+    tool: ssh.keypair.generate
+    input: '{{params}}'

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Observer operations use workflow IDs rather than inferring remote job identity.",
+  "properties": {
+    "workflow_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "workflow_id"
+  ],
+  "title": "WorkflowControlInput",
+  "type": "object"
+}
