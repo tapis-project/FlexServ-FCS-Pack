@@ -1,10 +1,17 @@
-name: Build v0.13 Capability Pack
+name: Release v0.13 FCS Packs
 on:
   push:
-    branches: [flexserv/new_fcs]
+    branches: [feature/new_fcs]
     tags: ['pack-v*']
   pull_request:
   workflow_dispatch:
+    inputs:
+      publish_release:
+        type: boolean
+        default: false
+      release_tag:
+        description: Existing tag at this workflow commit
+        type: string
 permissions:
   contents: read
 jobs:
@@ -12,16 +19,32 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - run: python3 -m unittest discover -s tests -p 'test_packaging.py'
-      - run: bash scripts/package_fcs_pack.sh
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - run: python3 -m unittest discover -s tests -p '*.py'
+      - run: python3 scripts/split_packs.py
       - uses: actions/upload-artifact@v4
         with:
-          name: flexserv-capability-pack
-          path: dist/flexserv-capability-pack.zip*
+          name: flexserv-fcs-packs
+          path: dist/*
           if-no-files-found: error
-      - if: startsWith(github.ref, 'refs/tags/pack-v')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/flexserv-capability-pack.zip* --generate-notes
+  publish:
+    needs: package
+    if: startsWith(github.ref, 'refs/tags/pack-v') || (github.event_name == 'workflow_dispatch' && inputs.publish_release)
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: flexserv-fcs-packs
+          path: dist
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.release_tag }}
+        run: bash scripts/publish_component_release.sh "${RELEASE_TAG:?An existing release tag is required}" dist
