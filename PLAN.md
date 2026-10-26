@@ -21,4 +21,3 @@ Unified payload: 18 toolsets, 65 tools, 117 inventoried files. Packaging tests: 
 - [ ] Publish both inventories and source metadata independently of Rust builds.
 - [ ] Test deterministic packaging, full checksum coverage and dependency closure;
   verify Deployer can merge identical shared assets and rejects conflicts.
-
