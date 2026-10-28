@@ -23,10 +23,10 @@ def build(source, output, commit):
         if name == 'tapis-workflow-pack':
             toolsets = [item for item in manifest['toolsets'] if
                         item['name'].startswith(('io.tapis.', 'io.flexserv.ssh.'))
-                        or item['name'] in ('io.flexserv.paths', 'io.flexserv.content')]
+                        or item['name'] == 'io.flexserv.paths']
         else:
-            toolsets = [item for item in manifest['toolsets'] if item['name'] in
-                        ('io.flexserv.deployments', 'io.flexserv.content')]
+            toolsets = [item for item in manifest['toolsets'] if item['name'] ==
+                        'io.flexserv.deployments']
         with tempfile.TemporaryDirectory(prefix='split-pack-') as temporary:
             root = Path(temporary)
             for item in toolsets:

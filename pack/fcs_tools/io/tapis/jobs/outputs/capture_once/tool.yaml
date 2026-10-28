@@ -78,5 +78,5 @@ spec:
         name: io.tapis.files.capture_prefix
         version: 1.0.0
       tool_scan:
-        name: io.flexserv.content.scan_to_secret
+        name: io.tapis.access.credentials.scan_to_secret
         version: 1.0.0

@@ -26,3 +26,19 @@ Proof (2026-10-26): six packaging/publication tests pass. An existing native FCS
 Release binary loads both standalone archives (58 and 8 tools), and the merged
 catalog (65 tools). Deployer Actions run 40353067098 confirms the published
 pack-v1.5.0-alpha-1 release has six assets and is readable with the existing token.
+
+## Independent Pack loading (2026-10-27)
+
+- [x] Move the hidden scanner wrapper to `io.tapis.access.credentials`; retain
+  its native primitive and update the Tapis workflow reference.
+- [x] Emit independent Tapis and vLLM ZIPs with no overlapping toolsets; regenerate
+  the reviewed source inventory and verify their complete payloads.
+- [x] Test both standalone Packs, the combined registry, namespace ownership and
+  backwards compatibility of the already-published archive.
+
+Local proof: six Pack/publication tests pass. The existing Capability Server
+Release binary loads the extracted Tapis Pack (58 tools), vLLM Pack (7 tools),
+and both together (65 tools). The old tagged combined catalog remains loadable
+with its inventory pin; its two old standalone Packs correctly conflict on
+`io.flexserv.content`. All temporary test archives were removed. Native ZIP
+loading and final release publication are verified by the parent task.

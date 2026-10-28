@@ -1,14 +1,9 @@
 {
   "schema_version": "flexserv.fcs-pack.v1alpha2",
   "name": "flexserv-capability-pack",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "target": "any",
   "toolsets": [
-    {
-      "name": "io.flexserv.content",
-      "version": "1.0.0",
-      "path": "fcs_tools/io/flexserv/content"
-    },
     {
       "name": "io.flexserv.deployments",
       "version": "1.0.0",
@@ -38,6 +33,11 @@
       "name": "io.tapis.access",
       "version": "1.0.0",
       "path": "fcs_tools/io/tapis/access"
+    },
+    {
+      "name": "io.tapis.access.credentials",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/tapis/access/credentials"
     },
     {
       "name": "io.tapis.apps",

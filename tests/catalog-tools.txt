@@ -1,4 +1,3 @@
-io.flexserv.content.scan_to_secret
 io.flexserv.deployments.cancel
 io.flexserv.deployments.inspect
 io.flexserv.deployments.output
@@ -14,6 +13,7 @@ io.flexserv.ssh.keypair.import
 io.flexserv.ssh.keypair.select
 io.flexserv.ssh.target.resolve
 io.tapis.access.check
+io.tapis.access.credentials.scan_to_secret
 io.tapis.apps.create
 io.tapis.apps.get
 io.tapis.apps.search
