@@ -162,7 +162,7 @@ spec:
     timeout_seconds: 7200
     max_calls: 512
   distribution:
-    mode: fanout
+    mode: collective
     default_selector:
       role: worker
   result:

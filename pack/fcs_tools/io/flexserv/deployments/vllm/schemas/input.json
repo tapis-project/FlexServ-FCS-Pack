@@ -365,6 +365,15 @@
       "maxItems": 128,
       "type": "array"
     },
+    "vllm_directory": {
+      "description": "Optional host-approved directory containing the vLLM executable.",
+      "maxLength": 4096,
+      "minLength": 1,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "vllm_version": {
       "maxLength": 80,
       "minLength": 1,
