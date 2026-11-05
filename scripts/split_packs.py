@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Derive two portable release Packs from the single reviewed source catalog."""
+"""Derive portable release Packs from the single reviewed source catalog."""
 import argparse
 import hashlib
 import json
@@ -19,14 +19,17 @@ def build(source, output, commit):
     manifest = json.loads((source / 'manifest.json').read_text())
     output.mkdir(parents=True, exist_ok=True)
     archives, versions = [], {}
-    for name in ('tapis-workflow-pack', 'vllm-pack'):
+    for name in ('tapis-workflow-pack', 'vllm-pack', 'hf-collective-pack'):
         if name == 'tapis-workflow-pack':
             toolsets = [item for item in manifest['toolsets'] if
                         item['name'].startswith(('io.tapis.', 'io.flexserv.ssh.'))
                         or item['name'] == 'io.flexserv.paths']
+        elif name == 'vllm-pack':
+            toolsets = [item for item in manifest['toolsets'] if item['name'] in
+                        ('io.flexserv.deployments', 'io.flexserv.vllm')]
         else:
             toolsets = [item for item in manifest['toolsets'] if item['name'] ==
-                        'io.flexserv.deployments']
+                        'io.flexserv.models']
         with tempfile.TemporaryDirectory(prefix='split-pack-') as temporary:
             root = Path(temporary)
             for item in toolsets:

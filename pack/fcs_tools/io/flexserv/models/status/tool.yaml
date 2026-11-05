@@ -1,0 +1,17 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.models.status
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: 'Observe or cancel an owned checkpoint workflow: status'
+    parameters_schema: schemas/input.json
+    output_schema: schemas/output.json
+  policy: {}
+  steps:
+  - id: control
+    kind: native
+    tool: workflow.status
+    input: '{{params}}'

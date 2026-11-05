@@ -1,0 +1,41 @@
+schema_version: flexserv.toolset.v1alpha2
+kind: ToolSet
+metadata:
+  name: io.flexserv.vllm
+  version: 1.0.0
+spec:
+  description: Reviewed Auto and Manual vLLM deployment
+  tools:
+  - name: io.flexserv.vllm.advanced.inspect
+    version: 1.0.0
+    path: advanced/inspect
+  - name: io.flexserv.vllm.deploy
+    version: 2.0.0
+    path: deploy
+  - name: io.flexserv.vllm.execute
+    version: 1.0.0
+    path: execute
+  - name: io.flexserv.vllm.status
+    version: 1.0.0
+    path: status
+  - name: io.flexserv.vllm.continue
+    version: 1.0.0
+    path: continue
+  - name: io.flexserv.vllm.inspect
+    version: 1.0.0
+    path: inspect
+  - name: io.flexserv.vllm.stop
+    version: 1.0.0
+    path: stop
+  - name: io.flexserv.vllm.cancel
+    version: 1.0.0
+    path: cancel
+  - name: io.flexserv.vllm.result
+    version: 1.0.0
+    path: result
+  - name: io.flexserv.vllm.workflow_status
+    version: 1.0.0
+    path: workflow_status
+  - name: io.flexserv.vllm.logs
+    version: 1.0.0
+    path: logs

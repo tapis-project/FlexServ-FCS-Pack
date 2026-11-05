@@ -1,0 +1,3603 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://recipes.vllm.ai/recipe.schema.json",
+  "title": "vLLM recipe",
+  "description": "A recipe YAML at models/<hf_org>/<hf_repo>.yaml. Field reference: https://github.com/vllm-project/recipes/blob/main/SCHEMA.md",
+  "type": "object",
+  "required": [
+    "meta",
+    "model",
+    "variants",
+    "compatible_strategies",
+    "guide"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "date_added": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "date_updated": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "difficulty": {
+          "type": "string",
+          "description": "Deprecated: nothing reads it. Omit it in new recipes."
+        },
+        "tasks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "text",
+              "multimodal",
+              "omni",
+              "embedding"
+            ]
+          }
+        },
+        "performance_headline": {
+          "type": "string"
+        },
+        "related_recipes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "default_hardware": {
+          "enum": [
+            "h100",
+            "h200",
+            "b200",
+            "gb200",
+            "b300",
+            "gb300",
+            "dgx_station_gb300",
+            "dgx_spark_gb10",
+            "rtx_pro_6000",
+            "rtx_pro_6000_2x",
+            "rtx_pro_6000_4x",
+            "rtx_pro_5000",
+            "rtx_pro_5000_4x",
+            "rtx_pro_6000_8x",
+            "rtx_5090",
+            "rtx_4090_2x",
+            "rtx_5090_2x",
+            "l40s",
+            "mi300x",
+            "mi325x",
+            "mi350x",
+            "mi355x",
+            "trillium",
+            "ironwood",
+            "xeon6",
+            "xeon5",
+            "arc_pro_b60",
+            "arc_pro_b70",
+            "ascend_950pr",
+            "ascend_950dt",
+            "ascend_910c",
+            "ascend_950dt_8x",
+            "ascend_950pr_8x"
+          ]
+        },
+        "default_variant": {
+          "type": "object",
+          "propertyNames": {
+            "anyOf": [
+              {
+                "enum": [
+                  "h100",
+                  "h200",
+                  "b200",
+                  "gb200",
+                  "b300",
+                  "gb300",
+                  "dgx_station_gb300",
+                  "dgx_spark_gb10",
+                  "rtx_pro_6000",
+                  "rtx_pro_6000_2x",
+                  "rtx_pro_6000_4x",
+                  "rtx_pro_5000",
+                  "rtx_pro_5000_4x",
+                  "rtx_pro_6000_8x",
+                  "rtx_5090",
+                  "rtx_4090_2x",
+                  "rtx_5090_2x",
+                  "l40s",
+                  "mi300x",
+                  "mi325x",
+                  "mi350x",
+                  "mi355x",
+                  "trillium",
+                  "ironwood",
+                  "xeon6",
+                  "xeon5",
+                  "arc_pro_b60",
+                  "arc_pro_b70",
+                  "ascend_950pr",
+                  "ascend_950dt",
+                  "ascend_910c",
+                  "ascend_950dt_8x",
+                  "ascend_950pr_8x",
+                  "hopper",
+                  "blackwell",
+                  "ada",
+                  "amd",
+                  "tpu",
+                  "cpu",
+                  "xpu",
+                  "npu",
+                  "nvidia",
+                  "google",
+                  "intel",
+                  "huawei",
+                  "default"
+                ]
+              },
+              {
+                "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+              }
+            ]
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "hardware": {
+          "type": "object",
+          "description": "verified = tested end-to-end; supported = declared (lists a restricted profile) without a verified claim; unsupported = confirmed blocker today",
+          "propertyNames": {
+            "enum": [
+              "h100",
+              "h200",
+              "b200",
+              "gb200",
+              "b300",
+              "gb300",
+              "dgx_station_gb300",
+              "dgx_spark_gb10",
+              "rtx_pro_6000",
+              "rtx_pro_6000_2x",
+              "rtx_pro_6000_4x",
+              "rtx_pro_5000",
+              "rtx_pro_5000_4x",
+              "rtx_pro_6000_8x",
+              "rtx_5090",
+              "rtx_4090_2x",
+              "rtx_5090_2x",
+              "l40s",
+              "mi300x",
+              "mi325x",
+              "mi350x",
+              "mi355x",
+              "trillium",
+              "ironwood",
+              "xeon6",
+              "xeon5",
+              "arc_pro_b60",
+              "arc_pro_b70",
+              "ascend_950pr",
+              "ascend_950dt",
+              "ascend_910c",
+              "ascend_950dt_8x",
+              "ascend_950pr_8x"
+            ]
+          },
+          "additionalProperties": {
+            "enum": [
+              "verified",
+              "supported",
+              "unsupported"
+            ]
+          }
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "install": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "blurb": {
+                    "type": "string"
+                  },
+                  "script": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "title",
+        "provider",
+        "description",
+        "date_updated",
+        "tasks"
+      ],
+      "additionalProperties": false
+    },
+    "model": {
+      "type": "object",
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "pattern": "^[^/\\s]+/[^/\\s]+$"
+        },
+        "min_vllm_version": {
+          "type": "string"
+        },
+        "architecture": {
+          "enum": [
+            "dense",
+            "moe"
+          ]
+        },
+        "parameter_count": {
+          "type": "string"
+        },
+        "active_parameters": {
+          "type": "string"
+        },
+        "context_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "base_args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "base_env": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          },
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        "default_frontend": {
+          "enum": [
+            "rust",
+            "python"
+          ]
+        },
+        "docker_image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "docker_source": {
+          "type": "object",
+          "properties": {
+            "mount_path": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "install": {
+          "type": "object",
+          "properties": {
+            "pip": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "command": {
+                      "type": "string"
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "docker": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "command": {
+                      "type": "string"
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "nightly_required": {
+          "type": "boolean"
+        },
+        "flashinfer_autotune": {
+          "type": "boolean"
+        },
+        "smg_grpc": {
+          "type": "object",
+          "properties": {
+            "reasoning_parser": {
+              "type": "string"
+            },
+            "tool_call_parser": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "supports_dcp": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "model_id",
+        "architecture",
+        "parameter_count"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(rust|python)_frontend$": {
+          "const": "unsupported"
+        }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "boolean"
+          },
+          "brand": {
+            "anyOf": [
+              {
+                "enum": [
+                  "NVIDIA",
+                  "AMD",
+                  "Google",
+                  "Intel",
+                  "Huawei"
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "NVIDIA",
+                    "AMD",
+                    "Google",
+                    "Intel",
+                    "Huawei"
+                  ]
+                }
+              }
+            ]
+          },
+          "install_modes": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "pip",
+                "docker"
+              ]
+            }
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "features": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "env": {
+            "type": "object",
+            "propertyNames": {
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            }
+          },
+          "strategies": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "multi_node_dep",
+                "multi_node_tep",
+                "multi_node_tp",
+                "multi_node_tp_dp",
+                "multi_node_tp_pp",
+                "pd_cluster",
+                "single_node_dep",
+                "single_node_dpa_tp",
+                "single_node_tep",
+                "single_node_tp"
+              ]
+            }
+          },
+          "hardware": {
+            "type": "object",
+            "propertyNames": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "h100",
+                    "h200",
+                    "b200",
+                    "gb200",
+                    "b300",
+                    "gb300",
+                    "dgx_station_gb300",
+                    "dgx_spark_gb10",
+                    "rtx_pro_6000",
+                    "rtx_pro_6000_2x",
+                    "rtx_pro_6000_4x",
+                    "rtx_pro_5000",
+                    "rtx_pro_5000_4x",
+                    "rtx_pro_6000_8x",
+                    "rtx_5090",
+                    "rtx_4090_2x",
+                    "rtx_5090_2x",
+                    "l40s",
+                    "mi300x",
+                    "mi325x",
+                    "mi350x",
+                    "mi355x",
+                    "trillium",
+                    "ironwood",
+                    "xeon6",
+                    "xeon5",
+                    "arc_pro_b60",
+                    "arc_pro_b70",
+                    "ascend_950pr",
+                    "ascend_950dt",
+                    "ascend_910c",
+                    "ascend_950dt_8x",
+                    "ascend_950pr_8x",
+                    "hopper",
+                    "blackwell",
+                    "ada",
+                    "amd",
+                    "tpu",
+                    "cpu",
+                    "xpu",
+                    "npu",
+                    "nvidia",
+                    "google",
+                    "intel",
+                    "huawei",
+                    "default"
+                  ]
+                },
+                {
+                  "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                }
+              ]
+            },
+            "additionalProperties": {
+              "enum": [
+                "unsupported",
+                "supported"
+              ]
+            }
+          },
+          "hardware_overrides": {
+            "type": "object",
+            "propertyNames": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "h100",
+                    "h200",
+                    "b200",
+                    "gb200",
+                    "b300",
+                    "gb300",
+                    "dgx_station_gb300",
+                    "dgx_spark_gb10",
+                    "rtx_pro_6000",
+                    "rtx_pro_6000_2x",
+                    "rtx_pro_6000_4x",
+                    "rtx_pro_5000",
+                    "rtx_pro_5000_4x",
+                    "rtx_pro_6000_8x",
+                    "rtx_5090",
+                    "rtx_4090_2x",
+                    "rtx_5090_2x",
+                    "l40s",
+                    "mi300x",
+                    "mi325x",
+                    "mi350x",
+                    "mi355x",
+                    "trillium",
+                    "ironwood",
+                    "xeon6",
+                    "xeon5",
+                    "arc_pro_b60",
+                    "arc_pro_b70",
+                    "ascend_950pr",
+                    "ascend_950dt",
+                    "ascend_910c",
+                    "ascend_950dt_8x",
+                    "ascend_950pr_8x",
+                    "hopper",
+                    "blackwell",
+                    "ada",
+                    "amd",
+                    "tpu",
+                    "cpu",
+                    "xpu",
+                    "npu",
+                    "nvidia",
+                    "google",
+                    "intel",
+                    "huawei",
+                    "default"
+                  ]
+                },
+                {
+                  "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                }
+              ]
+            },
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "args": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "env": {
+                  "type": "object",
+                  "propertyNames": {
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "default_mode": {
+            "type": "string"
+          },
+          "modes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "env": {
+                  "type": "object",
+                  "propertyNames": {
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  }
+                },
+                "variants": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "hardware": {
+                  "type": "object",
+                  "propertyNames": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "h100",
+                          "h200",
+                          "b200",
+                          "gb200",
+                          "b300",
+                          "gb300",
+                          "dgx_station_gb300",
+                          "dgx_spark_gb10",
+                          "rtx_pro_6000",
+                          "rtx_pro_6000_2x",
+                          "rtx_pro_6000_4x",
+                          "rtx_pro_5000",
+                          "rtx_pro_5000_4x",
+                          "rtx_pro_6000_8x",
+                          "rtx_5090",
+                          "rtx_4090_2x",
+                          "rtx_5090_2x",
+                          "l40s",
+                          "mi300x",
+                          "mi325x",
+                          "mi350x",
+                          "mi355x",
+                          "trillium",
+                          "ironwood",
+                          "xeon6",
+                          "xeon5",
+                          "arc_pro_b60",
+                          "arc_pro_b70",
+                          "ascend_950pr",
+                          "ascend_950dt",
+                          "ascend_910c",
+                          "ascend_950dt_8x",
+                          "ascend_950pr_8x",
+                          "hopper",
+                          "blackwell",
+                          "ada",
+                          "amd",
+                          "tpu",
+                          "cpu",
+                          "xpu",
+                          "npu",
+                          "nvidia",
+                          "google",
+                          "intel",
+                          "huawei",
+                          "default"
+                        ]
+                      },
+                      {
+                        "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                      }
+                    ]
+                  },
+                  "additionalProperties": {
+                    "enum": [
+                      "unsupported",
+                      "supported"
+                    ]
+                  }
+                },
+                "hardware_overrides": {
+                  "type": "object",
+                  "propertyNames": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "h100",
+                          "h200",
+                          "b200",
+                          "gb200",
+                          "b300",
+                          "gb300",
+                          "dgx_station_gb300",
+                          "dgx_spark_gb10",
+                          "rtx_pro_6000",
+                          "rtx_pro_6000_2x",
+                          "rtx_pro_6000_4x",
+                          "rtx_pro_5000",
+                          "rtx_pro_5000_4x",
+                          "rtx_pro_6000_8x",
+                          "rtx_5090",
+                          "rtx_4090_2x",
+                          "rtx_5090_2x",
+                          "l40s",
+                          "mi300x",
+                          "mi325x",
+                          "mi350x",
+                          "mi355x",
+                          "trillium",
+                          "ironwood",
+                          "xeon6",
+                          "xeon5",
+                          "arc_pro_b60",
+                          "arc_pro_b70",
+                          "ascend_950pr",
+                          "ascend_950dt",
+                          "ascend_910c",
+                          "ascend_950dt_8x",
+                          "ascend_950pr_8x",
+                          "hopper",
+                          "blackwell",
+                          "ada",
+                          "amd",
+                          "tpu",
+                          "cpu",
+                          "xpu",
+                          "npu",
+                          "nvidia",
+                          "google",
+                          "intel",
+                          "huawei",
+                          "default"
+                        ]
+                      },
+                      {
+                        "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                      }
+                    ]
+                  },
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "args": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "env": {
+                        "type": "object",
+                        "propertyNames": {
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                        },
+                        "additionalProperties": {
+                          "type": [
+                            "string",
+                            "number",
+                            "boolean"
+                          ]
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "companion": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "command": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label",
+              "command"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "description"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "opt_in_features": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "hardware_opt_in_features": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "h100",
+          "h200",
+          "b200",
+          "gb200",
+          "b300",
+          "gb300",
+          "dgx_station_gb300",
+          "dgx_spark_gb10",
+          "rtx_pro_6000",
+          "rtx_pro_6000_2x",
+          "rtx_pro_6000_4x",
+          "rtx_pro_5000",
+          "rtx_pro_5000_4x",
+          "rtx_pro_6000_8x",
+          "rtx_5090",
+          "rtx_4090_2x",
+          "rtx_5090_2x",
+          "l40s",
+          "mi300x",
+          "mi325x",
+          "mi350x",
+          "mi355x",
+          "trillium",
+          "ironwood",
+          "xeon6",
+          "xeon5",
+          "arc_pro_b60",
+          "arc_pro_b70",
+          "ascend_950pr",
+          "ascend_950dt",
+          "ascend_910c",
+          "ascend_950dt_8x",
+          "ascend_950pr_8x"
+        ]
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "variants": {
+      "type": "object",
+      "required": [
+        "default"
+      ],
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "precision": {
+            "type": "string",
+            "description": "bf16 | fp16 | fp8 | int8 | awq | gptq | int4 | nvfp4 | fp4 | mxfp4 | mxfp8 | …"
+          },
+          "vram_minimum_gb": {
+            "type": "number",
+            "minimum": 0
+          },
+          "description": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "model_id": {
+            "type": "string",
+            "pattern": "^[^/\\s]+/[^/\\s]+$"
+          },
+          "extra_args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "extra_env": {
+            "type": "object",
+            "propertyNames": {
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            }
+          },
+          "docker_image": {
+            "type": "string"
+          },
+          "min_vllm_version": {
+            "type": "string"
+          },
+          "nightly_required": {
+            "type": "boolean"
+          },
+          "tp": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "h100",
+                        "h200",
+                        "b200",
+                        "gb200",
+                        "b300",
+                        "gb300",
+                        "dgx_station_gb300",
+                        "dgx_spark_gb10",
+                        "rtx_pro_6000",
+                        "rtx_pro_6000_2x",
+                        "rtx_pro_6000_4x",
+                        "rtx_pro_5000",
+                        "rtx_pro_5000_4x",
+                        "rtx_pro_6000_8x",
+                        "rtx_5090",
+                        "rtx_4090_2x",
+                        "rtx_5090_2x",
+                        "l40s",
+                        "mi300x",
+                        "mi325x",
+                        "mi350x",
+                        "mi355x",
+                        "trillium",
+                        "ironwood",
+                        "xeon6",
+                        "xeon5",
+                        "arc_pro_b60",
+                        "arc_pro_b70",
+                        "ascend_950pr",
+                        "ascend_950dt",
+                        "ascend_910c",
+                        "ascend_950dt_8x",
+                        "ascend_950pr_8x",
+                        "hopper",
+                        "blackwell",
+                        "ada",
+                        "amd",
+                        "tpu",
+                        "cpu",
+                        "xpu",
+                        "npu",
+                        "nvidia",
+                        "google",
+                        "intel",
+                        "huawei",
+                        "default"
+                      ]
+                    },
+                    {
+                      "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                    }
+                  ]
+                },
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            ]
+          },
+          "supported_hardware": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "h100",
+                    "h200",
+                    "b200",
+                    "gb200",
+                    "b300",
+                    "gb300",
+                    "dgx_station_gb300",
+                    "dgx_spark_gb10",
+                    "rtx_pro_6000",
+                    "rtx_pro_6000_2x",
+                    "rtx_pro_6000_4x",
+                    "rtx_pro_5000",
+                    "rtx_pro_5000_4x",
+                    "rtx_pro_6000_8x",
+                    "rtx_5090",
+                    "rtx_4090_2x",
+                    "rtx_5090_2x",
+                    "l40s",
+                    "mi300x",
+                    "mi325x",
+                    "mi350x",
+                    "mi355x",
+                    "trillium",
+                    "ironwood",
+                    "xeon6",
+                    "xeon5",
+                    "arc_pro_b60",
+                    "arc_pro_b70",
+                    "ascend_950pr",
+                    "ascend_950dt",
+                    "ascend_910c",
+                    "ascend_950dt_8x",
+                    "ascend_950pr_8x"
+                  ]
+                },
+                {
+                  "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                }
+              ]
+            }
+          },
+          "precision_hardware": {
+            "type": "object",
+            "properties": {
+              "brand": {
+                "enum": [
+                  "NVIDIA",
+                  "AMD",
+                  "Google",
+                  "Intel",
+                  "Huawei"
+                ]
+              },
+              "generation": {
+                "enum": [
+                  "hopper",
+                  "blackwell",
+                  "ada",
+                  "amd",
+                  "tpu",
+                  "cpu",
+                  "xpu",
+                  "npu"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "default_modes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "hardware_overrides": {
+            "type": "object",
+            "propertyNames": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "h100",
+                    "h200",
+                    "b200",
+                    "gb200",
+                    "b300",
+                    "gb300",
+                    "dgx_station_gb300",
+                    "dgx_spark_gb10",
+                    "rtx_pro_6000",
+                    "rtx_pro_6000_2x",
+                    "rtx_pro_6000_4x",
+                    "rtx_pro_5000",
+                    "rtx_pro_5000_4x",
+                    "rtx_pro_6000_8x",
+                    "rtx_5090",
+                    "rtx_4090_2x",
+                    "rtx_5090_2x",
+                    "l40s",
+                    "mi300x",
+                    "mi325x",
+                    "mi350x",
+                    "mi355x",
+                    "trillium",
+                    "ironwood",
+                    "xeon6",
+                    "xeon5",
+                    "arc_pro_b60",
+                    "arc_pro_b70",
+                    "ascend_950pr",
+                    "ascend_950dt",
+                    "ascend_910c",
+                    "ascend_950dt_8x",
+                    "ascend_950pr_8x",
+                    "hopper",
+                    "blackwell",
+                    "ada",
+                    "amd",
+                    "tpu",
+                    "cpu",
+                    "xpu",
+                    "npu",
+                    "nvidia",
+                    "google",
+                    "intel",
+                    "huawei",
+                    "default"
+                  ]
+                },
+                {
+                  "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                }
+              ]
+            },
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "extra_args": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "extra_env": {
+                  "type": "object",
+                  "propertyNames": {
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  }
+                },
+                "vram_minimum_gb": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "docker_image": {
+                  "type": "string"
+                },
+                "docker_serve_command": {
+                  "type": "string"
+                },
+                "install": {
+                  "type": "object",
+                  "properties": {
+                    "pip": {
+                      "type": "boolean"
+                    },
+                    "docker": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "precision",
+          "vram_minimum_gb"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "compatible_strategies": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "multi_node_dep",
+          "multi_node_tep",
+          "multi_node_tp",
+          "multi_node_tp_dp",
+          "multi_node_tp_pp",
+          "pd_cluster",
+          "single_node_dep",
+          "single_node_dpa_tp",
+          "single_node_tep",
+          "single_node_tp"
+        ]
+      }
+    },
+    "decode_context_parallel": {
+      "type": "object",
+      "properties": {
+        "sizes": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 2
+              },
+              "uniqueItems": true
+            },
+            {
+              "type": "object",
+              "propertyNames": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "h100",
+                      "h200",
+                      "b200",
+                      "gb200",
+                      "b300",
+                      "gb300",
+                      "dgx_station_gb300",
+                      "dgx_spark_gb10",
+                      "rtx_pro_6000",
+                      "rtx_pro_6000_2x",
+                      "rtx_pro_6000_4x",
+                      "rtx_pro_5000",
+                      "rtx_pro_5000_4x",
+                      "rtx_pro_6000_8x",
+                      "rtx_5090",
+                      "rtx_4090_2x",
+                      "rtx_5090_2x",
+                      "l40s",
+                      "mi300x",
+                      "mi325x",
+                      "mi350x",
+                      "mi355x",
+                      "trillium",
+                      "ironwood",
+                      "xeon6",
+                      "xeon5",
+                      "arc_pro_b60",
+                      "arc_pro_b70",
+                      "ascend_950pr",
+                      "ascend_950dt",
+                      "ascend_910c",
+                      "ascend_950dt_8x",
+                      "ascend_950pr_8x",
+                      "hopper",
+                      "blackwell",
+                      "ada",
+                      "amd",
+                      "tpu",
+                      "cpu",
+                      "xpu",
+                      "npu",
+                      "nvidia",
+                      "google",
+                      "intel",
+                      "huawei",
+                      "default"
+                    ]
+                  },
+                  {
+                    "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                  }
+                ]
+              },
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 2
+                },
+                "uniqueItems": true
+              }
+            }
+          ]
+        },
+        "comm_backend": {
+          "type": "string"
+        },
+        "match_tp": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "sizes"
+      ],
+      "additionalProperties": false
+    },
+    "default_strategy": {
+      "enum": [
+        "multi_node_dep",
+        "multi_node_tep",
+        "multi_node_tp",
+        "multi_node_tp_dp",
+        "multi_node_tp_pp",
+        "pd_cluster",
+        "single_node_dep",
+        "single_node_dpa_tp",
+        "single_node_tep",
+        "single_node_tp"
+      ]
+    },
+    "strategy_min_gpus": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "anyOf": [
+              {
+                "enum": [
+                  "multi_node_dep",
+                  "multi_node_tep",
+                  "multi_node_tp",
+                  "multi_node_tp_dp",
+                  "multi_node_tp_pp",
+                  "pd_cluster",
+                  "single_node_dep",
+                  "single_node_dpa_tp",
+                  "single_node_tep",
+                  "single_node_tp"
+                ]
+              },
+              {
+                "enum": [
+                  "h100",
+                  "h200",
+                  "b200",
+                  "gb200",
+                  "b300",
+                  "gb300",
+                  "dgx_station_gb300",
+                  "dgx_spark_gb10",
+                  "rtx_pro_6000",
+                  "rtx_pro_6000_2x",
+                  "rtx_pro_6000_4x",
+                  "rtx_pro_5000",
+                  "rtx_pro_5000_4x",
+                  "rtx_pro_6000_8x",
+                  "rtx_5090",
+                  "rtx_4090_2x",
+                  "rtx_5090_2x",
+                  "l40s",
+                  "mi300x",
+                  "mi325x",
+                  "mi350x",
+                  "mi355x",
+                  "trillium",
+                  "ironwood",
+                  "xeon6",
+                  "xeon5",
+                  "arc_pro_b60",
+                  "arc_pro_b70",
+                  "ascend_950pr",
+                  "ascend_950dt",
+                  "ascend_910c",
+                  "ascend_950dt_8x",
+                  "ascend_950pr_8x"
+                ]
+              }
+            ]
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "enum": [
+                    "multi_node_dep",
+                    "multi_node_tep",
+                    "multi_node_tp",
+                    "multi_node_tp_dp",
+                    "multi_node_tp_pp",
+                    "pd_cluster",
+                    "single_node_dep",
+                    "single_node_dpa_tp",
+                    "single_node_tep",
+                    "single_node_tp"
+                  ]
+                },
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "kv_cache_strategy_hardware": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "kv_store_centralized_mooncake",
+          "kv_store_distributed_mooncake"
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": {
+          "enum": [
+            "h100",
+            "h200",
+            "b200",
+            "gb200",
+            "b300",
+            "gb300",
+            "dgx_station_gb300",
+            "dgx_spark_gb10",
+            "rtx_pro_6000",
+            "rtx_pro_6000_2x",
+            "rtx_pro_6000_4x",
+            "rtx_pro_5000",
+            "rtx_pro_5000_4x",
+            "rtx_pro_6000_8x",
+            "rtx_5090",
+            "rtx_4090_2x",
+            "rtx_5090_2x",
+            "l40s",
+            "mi300x",
+            "mi325x",
+            "mi350x",
+            "mi355x",
+            "trillium",
+            "ironwood",
+            "xeon6",
+            "xeon5",
+            "arc_pro_b60",
+            "arc_pro_b70",
+            "ascend_950pr",
+            "ascend_950dt",
+            "ascend_910c",
+            "ascend_950dt_8x",
+            "ascend_950pr_8x"
+          ]
+        },
+        "additionalProperties": {
+          "const": "unsupported"
+        }
+      }
+    },
+    "kv_offload_support": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "simple",
+          "offloading_cpu",
+          "offloading_fs",
+          "lmcache"
+        ]
+      },
+      "additionalProperties": {
+        "enum": [
+          "verified",
+          "supported",
+          "unsupported"
+        ]
+      }
+    },
+    "strategy_hardware": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "multi_node_dep",
+          "multi_node_tep",
+          "multi_node_tp",
+          "multi_node_tp_dp",
+          "multi_node_tp_pp",
+          "pd_cluster",
+          "single_node_dep",
+          "single_node_dpa_tp",
+          "single_node_tep",
+          "single_node_tp"
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": {
+          "anyOf": [
+            {
+              "enum": [
+                "h100",
+                "h200",
+                "b200",
+                "gb200",
+                "b300",
+                "gb300",
+                "dgx_station_gb300",
+                "dgx_spark_gb10",
+                "rtx_pro_6000",
+                "rtx_pro_6000_2x",
+                "rtx_pro_6000_4x",
+                "rtx_pro_5000",
+                "rtx_pro_5000_4x",
+                "rtx_pro_6000_8x",
+                "rtx_5090",
+                "rtx_4090_2x",
+                "rtx_5090_2x",
+                "l40s",
+                "mi300x",
+                "mi325x",
+                "mi350x",
+                "mi355x",
+                "trillium",
+                "ironwood",
+                "xeon6",
+                "xeon5",
+                "arc_pro_b60",
+                "arc_pro_b70",
+                "ascend_950pr",
+                "ascend_950dt",
+                "ascend_910c",
+                "ascend_950dt_8x",
+                "ascend_950pr_8x",
+                "hopper",
+                "blackwell",
+                "ada",
+                "amd",
+                "tpu",
+                "cpu",
+                "xpu",
+                "npu",
+                "nvidia",
+                "google",
+                "intel",
+                "huawei",
+                "default"
+              ]
+            },
+            {
+              "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+            }
+          ]
+        },
+        "additionalProperties": {
+          "enum": [
+            "supported",
+            "unsupported"
+          ]
+        }
+      }
+    },
+    "hardware_overrides": {
+      "type": "object",
+      "propertyNames": {
+        "anyOf": [
+          {
+            "enum": [
+              "h100",
+              "h200",
+              "b200",
+              "gb200",
+              "b300",
+              "gb300",
+              "dgx_station_gb300",
+              "dgx_spark_gb10",
+              "rtx_pro_6000",
+              "rtx_pro_6000_2x",
+              "rtx_pro_6000_4x",
+              "rtx_pro_5000",
+              "rtx_pro_5000_4x",
+              "rtx_pro_6000_8x",
+              "rtx_5090",
+              "rtx_4090_2x",
+              "rtx_5090_2x",
+              "l40s",
+              "mi300x",
+              "mi325x",
+              "mi350x",
+              "mi355x",
+              "trillium",
+              "ironwood",
+              "xeon6",
+              "xeon5",
+              "arc_pro_b60",
+              "arc_pro_b70",
+              "ascend_950pr",
+              "ascend_950dt",
+              "ascend_910c",
+              "ascend_950dt_8x",
+              "ascend_950pr_8x",
+              "hopper",
+              "blackwell",
+              "ada",
+              "amd",
+              "tpu",
+              "cpu",
+              "xpu",
+              "npu",
+              "nvidia",
+              "google",
+              "intel",
+              "huawei",
+              "default"
+            ]
+          },
+          {
+            "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+          }
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "extra_args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "extra_env": {
+            "type": "object",
+            "propertyNames": {
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            }
+          },
+          "install_note": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "hardware_notes": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "h100",
+          "h200",
+          "b200",
+          "gb200",
+          "b300",
+          "gb300",
+          "dgx_station_gb300",
+          "dgx_spark_gb10",
+          "rtx_pro_6000",
+          "rtx_pro_6000_2x",
+          "rtx_pro_6000_4x",
+          "rtx_pro_5000",
+          "rtx_pro_5000_4x",
+          "rtx_pro_6000_8x",
+          "rtx_5090",
+          "rtx_4090_2x",
+          "rtx_5090_2x",
+          "l40s",
+          "mi300x",
+          "mi325x",
+          "mi350x",
+          "mi355x",
+          "trillium",
+          "ironwood",
+          "xeon6",
+          "xeon5",
+          "arc_pro_b60",
+          "arc_pro_b70",
+          "ascend_950pr",
+          "ascend_950dt",
+          "ascend_910c",
+          "ascend_950dt_8x",
+          "ascend_950pr_8x"
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "link": {
+            "type": "object",
+            "properties": {
+              "href": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "strategy_overrides": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "multi_node_dep",
+          "multi_node_tep",
+          "multi_node_tp",
+          "multi_node_tp_dp",
+          "multi_node_tp_pp",
+          "pd_cluster",
+          "single_node_dep",
+          "single_node_dpa_tp",
+          "single_node_tep",
+          "single_node_tp"
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "tp": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "h100",
+                        "h200",
+                        "b200",
+                        "gb200",
+                        "b300",
+                        "gb300",
+                        "dgx_station_gb300",
+                        "dgx_spark_gb10",
+                        "rtx_pro_6000",
+                        "rtx_pro_6000_2x",
+                        "rtx_pro_6000_4x",
+                        "rtx_pro_5000",
+                        "rtx_pro_5000_4x",
+                        "rtx_pro_6000_8x",
+                        "rtx_5090",
+                        "rtx_4090_2x",
+                        "rtx_5090_2x",
+                        "l40s",
+                        "mi300x",
+                        "mi325x",
+                        "mi350x",
+                        "mi355x",
+                        "trillium",
+                        "ironwood",
+                        "xeon6",
+                        "xeon5",
+                        "arc_pro_b60",
+                        "arc_pro_b70",
+                        "ascend_950pr",
+                        "ascend_950dt",
+                        "ascend_910c",
+                        "ascend_950dt_8x",
+                        "ascend_950pr_8x",
+                        "hopper",
+                        "blackwell",
+                        "ada",
+                        "amd",
+                        "tpu",
+                        "cpu",
+                        "xpu",
+                        "npu",
+                        "nvidia",
+                        "google",
+                        "intel",
+                        "huawei",
+                        "default"
+                      ]
+                    },
+                    {
+                      "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                    }
+                  ]
+                },
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            ]
+          },
+          "extra_args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "extra_env": {
+            "type": "object",
+            "propertyNames": {
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            }
+          },
+          "env": {
+            "type": "object",
+            "propertyNames": {
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            }
+          },
+          "vllm_args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hardware_overrides": {
+            "type": "object",
+            "propertyNames": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "h100",
+                    "h200",
+                    "b200",
+                    "gb200",
+                    "b300",
+                    "gb300",
+                    "dgx_station_gb300",
+                    "dgx_spark_gb10",
+                    "rtx_pro_6000",
+                    "rtx_pro_6000_2x",
+                    "rtx_pro_6000_4x",
+                    "rtx_pro_5000",
+                    "rtx_pro_5000_4x",
+                    "rtx_pro_6000_8x",
+                    "rtx_5090",
+                    "rtx_4090_2x",
+                    "rtx_5090_2x",
+                    "l40s",
+                    "mi300x",
+                    "mi325x",
+                    "mi350x",
+                    "mi355x",
+                    "trillium",
+                    "ironwood",
+                    "xeon6",
+                    "xeon5",
+                    "arc_pro_b60",
+                    "arc_pro_b70",
+                    "ascend_950pr",
+                    "ascend_950dt",
+                    "ascend_910c",
+                    "ascend_950dt_8x",
+                    "ascend_950pr_8x",
+                    "hopper",
+                    "blackwell",
+                    "ada",
+                    "amd",
+                    "tpu",
+                    "cpu",
+                    "xpu",
+                    "npu",
+                    "nvidia",
+                    "google",
+                    "intel",
+                    "huawei",
+                    "default"
+                  ]
+                },
+                {
+                  "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                }
+              ]
+            },
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "extra_args": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "extra_env": {
+                  "type": "object",
+                  "propertyNames": {
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "prefill": {
+            "type": "object",
+            "properties": {
+              "nodes": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "h100",
+                            "h200",
+                            "b200",
+                            "gb200",
+                            "b300",
+                            "gb300",
+                            "dgx_station_gb300",
+                            "dgx_spark_gb10",
+                            "rtx_pro_6000",
+                            "rtx_pro_6000_2x",
+                            "rtx_pro_6000_4x",
+                            "rtx_pro_5000",
+                            "rtx_pro_5000_4x",
+                            "rtx_pro_6000_8x",
+                            "rtx_5090",
+                            "rtx_4090_2x",
+                            "rtx_5090_2x",
+                            "l40s",
+                            "mi300x",
+                            "mi325x",
+                            "mi350x",
+                            "mi355x",
+                            "trillium",
+                            "ironwood",
+                            "xeon6",
+                            "xeon5",
+                            "arc_pro_b60",
+                            "arc_pro_b70",
+                            "ascend_950pr",
+                            "ascend_950dt",
+                            "ascend_910c",
+                            "ascend_950dt_8x",
+                            "ascend_950pr_8x",
+                            "hopper",
+                            "blackwell",
+                            "ada",
+                            "amd",
+                            "tpu",
+                            "cpu",
+                            "xpu",
+                            "npu",
+                            "nvidia",
+                            "google",
+                            "intel",
+                            "huawei",
+                            "default"
+                          ]
+                        },
+                        {
+                          "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                        }
+                      ]
+                    },
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                ]
+              },
+              "parallelism": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "tp",
+                      "tep",
+                      "dep"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "h100",
+                            "h200",
+                            "b200",
+                            "gb200",
+                            "b300",
+                            "gb300",
+                            "dgx_station_gb300",
+                            "dgx_spark_gb10",
+                            "rtx_pro_6000",
+                            "rtx_pro_6000_2x",
+                            "rtx_pro_6000_4x",
+                            "rtx_pro_5000",
+                            "rtx_pro_5000_4x",
+                            "rtx_pro_6000_8x",
+                            "rtx_5090",
+                            "rtx_4090_2x",
+                            "rtx_5090_2x",
+                            "l40s",
+                            "mi300x",
+                            "mi325x",
+                            "mi350x",
+                            "mi355x",
+                            "trillium",
+                            "ironwood",
+                            "xeon6",
+                            "xeon5",
+                            "arc_pro_b60",
+                            "arc_pro_b70",
+                            "ascend_950pr",
+                            "ascend_950dt",
+                            "ascend_910c",
+                            "ascend_950dt_8x",
+                            "ascend_950pr_8x",
+                            "hopper",
+                            "blackwell",
+                            "ada",
+                            "amd",
+                            "tpu",
+                            "cpu",
+                            "xpu",
+                            "npu",
+                            "nvidia",
+                            "google",
+                            "intel",
+                            "huawei",
+                            "default"
+                          ]
+                        },
+                        {
+                          "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                        }
+                      ]
+                    },
+                    "additionalProperties": {
+                      "enum": [
+                        "tp",
+                        "tep",
+                        "dep"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "tp": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "vllm_args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "env": {
+                "type": "object",
+                "propertyNames": {
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                },
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              },
+              "parallel_flag": {
+                "type": "string"
+              },
+              "hardware_overrides": {
+                "type": "object",
+                "propertyNames": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "h100",
+                        "h200",
+                        "b200",
+                        "gb200",
+                        "b300",
+                        "gb300",
+                        "dgx_station_gb300",
+                        "dgx_spark_gb10",
+                        "rtx_pro_6000",
+                        "rtx_pro_6000_2x",
+                        "rtx_pro_6000_4x",
+                        "rtx_pro_5000",
+                        "rtx_pro_5000_4x",
+                        "rtx_pro_6000_8x",
+                        "rtx_5090",
+                        "rtx_4090_2x",
+                        "rtx_5090_2x",
+                        "l40s",
+                        "mi300x",
+                        "mi325x",
+                        "mi350x",
+                        "mi355x",
+                        "trillium",
+                        "ironwood",
+                        "xeon6",
+                        "xeon5",
+                        "arc_pro_b60",
+                        "arc_pro_b70",
+                        "ascend_950pr",
+                        "ascend_950dt",
+                        "ascend_910c",
+                        "ascend_950dt_8x",
+                        "ascend_950pr_8x",
+                        "hopper",
+                        "blackwell",
+                        "ada",
+                        "amd",
+                        "tpu",
+                        "cpu",
+                        "xpu",
+                        "npu",
+                        "nvidia",
+                        "google",
+                        "intel",
+                        "huawei",
+                        "default"
+                      ]
+                    },
+                    {
+                      "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                    }
+                  ]
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "extra_args": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "extra_env": {
+                      "type": "object",
+                      "propertyNames": {
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                      },
+                      "additionalProperties": {
+                        "type": [
+                          "string",
+                          "number",
+                          "boolean"
+                        ]
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "decode": {
+            "type": "object",
+            "properties": {
+              "nodes": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "h100",
+                            "h200",
+                            "b200",
+                            "gb200",
+                            "b300",
+                            "gb300",
+                            "dgx_station_gb300",
+                            "dgx_spark_gb10",
+                            "rtx_pro_6000",
+                            "rtx_pro_6000_2x",
+                            "rtx_pro_6000_4x",
+                            "rtx_pro_5000",
+                            "rtx_pro_5000_4x",
+                            "rtx_pro_6000_8x",
+                            "rtx_5090",
+                            "rtx_4090_2x",
+                            "rtx_5090_2x",
+                            "l40s",
+                            "mi300x",
+                            "mi325x",
+                            "mi350x",
+                            "mi355x",
+                            "trillium",
+                            "ironwood",
+                            "xeon6",
+                            "xeon5",
+                            "arc_pro_b60",
+                            "arc_pro_b70",
+                            "ascend_950pr",
+                            "ascend_950dt",
+                            "ascend_910c",
+                            "ascend_950dt_8x",
+                            "ascend_950pr_8x",
+                            "hopper",
+                            "blackwell",
+                            "ada",
+                            "amd",
+                            "tpu",
+                            "cpu",
+                            "xpu",
+                            "npu",
+                            "nvidia",
+                            "google",
+                            "intel",
+                            "huawei",
+                            "default"
+                          ]
+                        },
+                        {
+                          "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                        }
+                      ]
+                    },
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                ]
+              },
+              "parallelism": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "tp",
+                      "tep",
+                      "dep"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "h100",
+                            "h200",
+                            "b200",
+                            "gb200",
+                            "b300",
+                            "gb300",
+                            "dgx_station_gb300",
+                            "dgx_spark_gb10",
+                            "rtx_pro_6000",
+                            "rtx_pro_6000_2x",
+                            "rtx_pro_6000_4x",
+                            "rtx_pro_5000",
+                            "rtx_pro_5000_4x",
+                            "rtx_pro_6000_8x",
+                            "rtx_5090",
+                            "rtx_4090_2x",
+                            "rtx_5090_2x",
+                            "l40s",
+                            "mi300x",
+                            "mi325x",
+                            "mi350x",
+                            "mi355x",
+                            "trillium",
+                            "ironwood",
+                            "xeon6",
+                            "xeon5",
+                            "arc_pro_b60",
+                            "arc_pro_b70",
+                            "ascend_950pr",
+                            "ascend_950dt",
+                            "ascend_910c",
+                            "ascend_950dt_8x",
+                            "ascend_950pr_8x",
+                            "hopper",
+                            "blackwell",
+                            "ada",
+                            "amd",
+                            "tpu",
+                            "cpu",
+                            "xpu",
+                            "npu",
+                            "nvidia",
+                            "google",
+                            "intel",
+                            "huawei",
+                            "default"
+                          ]
+                        },
+                        {
+                          "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                        }
+                      ]
+                    },
+                    "additionalProperties": {
+                      "enum": [
+                        "tp",
+                        "tep",
+                        "dep"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "tp": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "vllm_args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "env": {
+                "type": "object",
+                "propertyNames": {
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                },
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              },
+              "parallel_flag": {
+                "type": "string"
+              },
+              "hardware_overrides": {
+                "type": "object",
+                "propertyNames": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "h100",
+                        "h200",
+                        "b200",
+                        "gb200",
+                        "b300",
+                        "gb300",
+                        "dgx_station_gb300",
+                        "dgx_spark_gb10",
+                        "rtx_pro_6000",
+                        "rtx_pro_6000_2x",
+                        "rtx_pro_6000_4x",
+                        "rtx_pro_5000",
+                        "rtx_pro_5000_4x",
+                        "rtx_pro_6000_8x",
+                        "rtx_5090",
+                        "rtx_4090_2x",
+                        "rtx_5090_2x",
+                        "l40s",
+                        "mi300x",
+                        "mi325x",
+                        "mi350x",
+                        "mi355x",
+                        "trillium",
+                        "ironwood",
+                        "xeon6",
+                        "xeon5",
+                        "arc_pro_b60",
+                        "arc_pro_b70",
+                        "ascend_950pr",
+                        "ascend_950dt",
+                        "ascend_910c",
+                        "ascend_950dt_8x",
+                        "ascend_950pr_8x",
+                        "hopper",
+                        "blackwell",
+                        "ada",
+                        "amd",
+                        "tpu",
+                        "cpu",
+                        "xpu",
+                        "npu",
+                        "nvidia",
+                        "google",
+                        "intel",
+                        "huawei",
+                        "default"
+                      ]
+                    },
+                    {
+                      "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                    }
+                  ]
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "extra_args": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "extra_env": {
+                      "type": "object",
+                      "propertyNames": {
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                      },
+                      "additionalProperties": {
+                        "type": [
+                          "string",
+                          "number",
+                          "boolean"
+                        ]
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "router": {
+            "type": "object",
+            "properties": {
+              "intra_node_data_parallel_size": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "pool_modes": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "tp",
+                "tep",
+                "dep"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "presets": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z0-9][a-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "hardware": {
+            "enum": [
+              "h100",
+              "h200",
+              "b200",
+              "gb200",
+              "b300",
+              "gb300",
+              "dgx_station_gb300",
+              "dgx_spark_gb10",
+              "rtx_pro_6000",
+              "rtx_pro_6000_2x",
+              "rtx_pro_6000_4x",
+              "rtx_pro_5000",
+              "rtx_pro_5000_4x",
+              "rtx_pro_6000_8x",
+              "rtx_5090",
+              "rtx_4090_2x",
+              "rtx_5090_2x",
+              "l40s",
+              "mi300x",
+              "mi325x",
+              "mi350x",
+              "mi355x",
+              "trillium",
+              "ironwood",
+              "xeon6",
+              "xeon5",
+              "arc_pro_b60",
+              "arc_pro_b70",
+              "ascend_950pr",
+              "ascend_950dt",
+              "ascend_910c",
+              "ascend_950dt_8x",
+              "ascend_950pr_8x"
+            ]
+          },
+          "strategy": {
+            "enum": [
+              "multi_node_dep",
+              "multi_node_tep",
+              "multi_node_tp",
+              "multi_node_tp_dp",
+              "multi_node_tp_pp",
+              "pd_cluster",
+              "single_node_dep",
+              "single_node_dpa_tp",
+              "single_node_tep",
+              "single_node_tp"
+            ]
+          },
+          "variants": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "workload": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "default": {
+            "type": "boolean"
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "env": {
+            "type": "object",
+            "propertyNames": {
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            }
+          },
+          "remove_args": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^--"
+            }
+          },
+          "json_args": {
+            "type": "object",
+            "description": "edits to JSON-valued flags: keys to set, null deletes",
+            "propertyNames": {
+              "pattern": "^--"
+            },
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "tp": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "roles": {
+            "type": "object",
+            "properties": {
+              "prefill": {
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "env": {
+                    "type": "object",
+                    "propertyNames": {
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "additionalProperties": {
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean"
+                      ]
+                    }
+                  },
+                  "remove_args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^--"
+                    }
+                  },
+                  "json_args": {
+                    "type": "object",
+                    "description": "edits to JSON-valued flags: keys to set, null deletes",
+                    "propertyNames": {
+                      "pattern": "^--"
+                    },
+                    "additionalProperties": {
+                      "type": "object"
+                    }
+                  },
+                  "nodes": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "parallelism": {
+                    "enum": [
+                      "tp",
+                      "tep",
+                      "dep"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "decode": {
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "env": {
+                    "type": "object",
+                    "propertyNames": {
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    },
+                    "additionalProperties": {
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean"
+                      ]
+                    }
+                  },
+                  "remove_args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^--"
+                    }
+                  },
+                  "json_args": {
+                    "type": "object",
+                    "description": "edits to JSON-valued flags: keys to set, null deletes",
+                    "propertyNames": {
+                      "pattern": "^--"
+                    },
+                    "additionalProperties": {
+                      "type": "object"
+                    }
+                  },
+                  "nodes": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "parallelism": {
+                    "enum": [
+                      "tp",
+                      "tep",
+                      "dep"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "select": {
+            "type": "object",
+            "properties": {
+              "nodes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "pd_router": {
+                "enum": [
+                  "vllm",
+                  "dynamo",
+                  "smg"
+                ]
+              },
+              "pd_connector": {
+                "enum": [
+                  "nixl",
+                  "mooncake",
+                  "moriio"
+                ]
+              },
+              "frontend": {
+                "enum": [
+                  "rust",
+                  "python"
+                ]
+              },
+              "features": {
+                "type": "object",
+                "description": "true/false toggles a feature; a string picks that mode (and turns it on)",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "dcp": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "kv_offload": {
+                "enum": [
+                  "simple",
+                  "offloading_cpu",
+                  "offloading_fs",
+                  "lmcache",
+                  "kv_store_centralized_mooncake",
+                  "kv_store_distributed_mooncake",
+                  "off",
+                  false
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "vllm": {
+                    "type": "string"
+                  },
+                  "dynamo": {
+                    "type": "string"
+                  },
+                  "pip": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "model_revision": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "points": {
+            "type": "object",
+            "propertyNames": {
+              "pattern": "^[a-z0-9][a-z0-9_]*$"
+            },
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "concurrency": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": {
+                  "type": "string"
+                },
+                "default": {
+                  "type": "boolean"
+                },
+                "args": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "env": {
+                  "type": "object",
+                  "propertyNames": {
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  },
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  }
+                },
+                "remove_args": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^--"
+                  }
+                },
+                "json_args": {
+                  "type": "object",
+                  "description": "edits to JSON-valued flags: keys to set, null deletes",
+                  "propertyNames": {
+                    "pattern": "^--"
+                  },
+                  "additionalProperties": {
+                    "type": "object"
+                  }
+                },
+                "tp": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "roles": {
+                  "type": "object",
+                  "properties": {
+                    "prefill": {
+                      "type": "object",
+                      "properties": {
+                        "args": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "env": {
+                          "type": "object",
+                          "propertyNames": {
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                          },
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "number",
+                              "boolean"
+                            ]
+                          }
+                        },
+                        "remove_args": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^--"
+                          }
+                        },
+                        "json_args": {
+                          "type": "object",
+                          "description": "edits to JSON-valued flags: keys to set, null deletes",
+                          "propertyNames": {
+                            "pattern": "^--"
+                          },
+                          "additionalProperties": {
+                            "type": "object"
+                          }
+                        },
+                        "nodes": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "parallelism": {
+                          "enum": [
+                            "tp",
+                            "tep",
+                            "dep"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "decode": {
+                      "type": "object",
+                      "properties": {
+                        "args": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "env": {
+                          "type": "object",
+                          "propertyNames": {
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                          },
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "number",
+                              "boolean"
+                            ]
+                          }
+                        },
+                        "remove_args": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^--"
+                          }
+                        },
+                        "json_args": {
+                          "type": "object",
+                          "description": "edits to JSON-valued flags: keys to set, null deletes",
+                          "propertyNames": {
+                            "pattern": "^--"
+                          },
+                          "additionalProperties": {
+                            "type": "object"
+                          }
+                        },
+                        "nodes": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "parallelism": {
+                          "enum": [
+                            "tp",
+                            "tep",
+                            "dep"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "select": {
+                  "type": "object",
+                  "properties": {
+                    "nodes": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "pd_router": {
+                      "enum": [
+                        "vllm",
+                        "dynamo",
+                        "smg"
+                      ]
+                    },
+                    "pd_connector": {
+                      "enum": [
+                        "nixl",
+                        "mooncake",
+                        "moriio"
+                      ]
+                    },
+                    "frontend": {
+                      "enum": [
+                        "rust",
+                        "python"
+                      ]
+                    },
+                    "features": {
+                      "type": "object",
+                      "description": "true/false toggles a feature; a string picks that mode (and turns it on)",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      }
+                    },
+                    "dcp": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "kv_offload": {
+                      "enum": [
+                        "simple",
+                        "offloading_cpu",
+                        "offloading_fs",
+                        "lmcache",
+                        "kv_store_centralized_mooncake",
+                        "kv_store_distributed_mooncake",
+                        "off",
+                        false
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "image": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "vllm": {
+                          "type": "string"
+                        },
+                        "dynamo": {
+                          "type": "string"
+                        },
+                        "pip": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "model_revision": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "label"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "source": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "href": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "href"
+            ],
+            "additionalProperties": false
+          },
+          "runbook": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "hardware"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "when": {
+            "type": "object",
+            "properties": {
+              "hardware": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "h100",
+                        "h200",
+                        "b200",
+                        "gb200",
+                        "b300",
+                        "gb300",
+                        "dgx_station_gb300",
+                        "dgx_spark_gb10",
+                        "rtx_pro_6000",
+                        "rtx_pro_6000_2x",
+                        "rtx_pro_6000_4x",
+                        "rtx_pro_5000",
+                        "rtx_pro_5000_4x",
+                        "rtx_pro_6000_8x",
+                        "rtx_5090",
+                        "rtx_4090_2x",
+                        "rtx_5090_2x",
+                        "l40s",
+                        "mi300x",
+                        "mi325x",
+                        "mi350x",
+                        "mi355x",
+                        "trillium",
+                        "ironwood",
+                        "xeon6",
+                        "xeon5",
+                        "arc_pro_b60",
+                        "arc_pro_b70",
+                        "ascend_950pr",
+                        "ascend_950dt",
+                        "ascend_910c",
+                        "ascend_950dt_8x",
+                        "ascend_950pr_8x",
+                        "hopper",
+                        "blackwell",
+                        "ada",
+                        "amd",
+                        "tpu",
+                        "cpu",
+                        "xpu",
+                        "npu",
+                        "nvidia",
+                        "google",
+                        "intel",
+                        "huawei"
+                      ]
+                    },
+                    {
+                      "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                    }
+                  ]
+                }
+              },
+              "strategies": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "enum": [
+                    "multi_node_dep",
+                    "multi_node_tep",
+                    "multi_node_tp",
+                    "multi_node_tp_dp",
+                    "multi_node_tp_pp",
+                    "pd_cluster",
+                    "single_node_dep",
+                    "single_node_dpa_tp",
+                    "single_node_tep",
+                    "single_node_tp"
+                  ]
+                }
+              },
+              "variants": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "features": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "when",
+          "body"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "troubleshooting": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "when": {
+            "type": "object",
+            "properties": {
+              "hardware": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "h100",
+                        "h200",
+                        "b200",
+                        "gb200",
+                        "b300",
+                        "gb300",
+                        "dgx_station_gb300",
+                        "dgx_spark_gb10",
+                        "rtx_pro_6000",
+                        "rtx_pro_6000_2x",
+                        "rtx_pro_6000_4x",
+                        "rtx_pro_5000",
+                        "rtx_pro_5000_4x",
+                        "rtx_pro_6000_8x",
+                        "rtx_5090",
+                        "rtx_4090_2x",
+                        "rtx_5090_2x",
+                        "l40s",
+                        "mi300x",
+                        "mi325x",
+                        "mi350x",
+                        "mi355x",
+                        "trillium",
+                        "ironwood",
+                        "xeon6",
+                        "xeon5",
+                        "arc_pro_b60",
+                        "arc_pro_b70",
+                        "ascend_950pr",
+                        "ascend_950dt",
+                        "ascend_910c",
+                        "ascend_950dt_8x",
+                        "ascend_950pr_8x",
+                        "hopper",
+                        "blackwell",
+                        "ada",
+                        "amd",
+                        "tpu",
+                        "cpu",
+                        "xpu",
+                        "npu",
+                        "nvidia",
+                        "google",
+                        "intel",
+                        "huawei"
+                      ]
+                    },
+                    {
+                      "pattern": "^arch:(sm90|sm100|sm103|sm121|sm120|sm89|gfx942|gfx950)$"
+                    }
+                  ]
+                }
+              },
+              "strategies": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "enum": [
+                    "multi_node_dep",
+                    "multi_node_tep",
+                    "multi_node_tp",
+                    "multi_node_tp_dp",
+                    "multi_node_tp_pp",
+                    "pd_cluster",
+                    "single_node_dep",
+                    "single_node_dpa_tp",
+                    "single_node_tep",
+                    "single_node_tp"
+                  ]
+                }
+              },
+              "variants": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "features": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "body"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "advanced_options": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "omni": {
+      "type": "object",
+      "properties": {
+        "serve_binary": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "task_label": {
+          "type": "string"
+        },
+        "task_hint": {
+          "type": "string"
+        },
+        "variant_label": {
+          "type": "string"
+        },
+        "variant_hint": {
+          "type": "string"
+        },
+        "task_axes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "model_id": {
+                    "type": "string"
+                  },
+                  "vram_minimum_gb": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "extra_args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "curl": {
+                    "type": "string"
+                  },
+                  "benchmark": {
+                    "type": "string"
+                  },
+                  "endpoint": {
+                    "type": "string"
+                  },
+                  "axes": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "hardware_overrides": {
+                    "type": "object",
+                    "propertyNames": {
+                      "enum": [
+                        "h100",
+                        "h200",
+                        "b200",
+                        "gb200",
+                        "b300",
+                        "gb300",
+                        "dgx_station_gb300",
+                        "dgx_spark_gb10",
+                        "rtx_pro_6000",
+                        "rtx_pro_6000_2x",
+                        "rtx_pro_6000_4x",
+                        "rtx_pro_5000",
+                        "rtx_pro_5000_4x",
+                        "rtx_pro_6000_8x",
+                        "rtx_5090",
+                        "rtx_4090_2x",
+                        "rtx_5090_2x",
+                        "l40s",
+                        "mi300x",
+                        "mi325x",
+                        "mi350x",
+                        "mi355x",
+                        "trillium",
+                        "ironwood",
+                        "xeon6",
+                        "xeon5",
+                        "arc_pro_b60",
+                        "arc_pro_b70",
+                        "ascend_950pr",
+                        "ascend_950dt",
+                        "ascend_910c",
+                        "ascend_950dt_8x",
+                        "ascend_950pr_8x"
+                      ]
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "curl": {
+                          "type": "string"
+                        },
+                        "extra_args": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "vram_minimum_gb": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "tasks"
+      ],
+      "additionalProperties": false
+    },
+    "guide": {
+      "type": "string"
+    }
+  }
+}

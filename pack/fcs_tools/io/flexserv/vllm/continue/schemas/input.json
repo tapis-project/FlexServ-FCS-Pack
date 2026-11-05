@@ -1,0 +1,70 @@
+{
+  "additionalProperties": false,
+  "description": "The exact displayed node receipt must match before a stage can advance.",
+  "properties": {
+    "acknowledge_preferred": {
+      "default": false,
+      "type": "boolean"
+    },
+    "cohort": {
+      "default": null
+    },
+    "digest": {
+      "type": "string"
+    },
+    "revision": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stage": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "workflow_id",
+    "stage",
+    "revision",
+    "digest"
+  ],
+  "type": "object",
+  "$defs": {
+    "StageRelease": {
+      "additionalProperties": false,
+      "description": "The exact displayed node receipt must match before a stage can advance.",
+      "properties": {
+        "acknowledge_preferred": {
+          "default": false,
+          "type": "boolean"
+        },
+        "cohort": {
+          "default": null
+        },
+        "digest": {
+          "type": "string"
+        },
+        "revision": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "workflow_id",
+        "stage",
+        "revision",
+        "digest"
+      ],
+      "type": "object"
+    }
+  }
+}

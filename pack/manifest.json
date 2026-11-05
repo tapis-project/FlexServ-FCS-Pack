@@ -10,6 +10,11 @@
       "path": "fcs_tools/io/flexserv/deployments"
     },
     {
+      "name": "io.flexserv.models",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/flexserv/models"
+    },
+    {
       "name": "io.flexserv.paths",
       "version": "1.0.0",
       "path": "fcs_tools/io/flexserv/paths"
@@ -93,6 +98,11 @@
       "name": "io.tapis.workflows",
       "version": "1.0.0",
       "path": "fcs_tools/io/tapis/workflows"
+    },
+    {
+      "name": "io.flexserv.vllm",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/flexserv/vllm"
     }
   ]
 }

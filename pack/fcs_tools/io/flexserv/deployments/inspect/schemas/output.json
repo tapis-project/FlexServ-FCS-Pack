@@ -80,6 +80,13 @@
         },
         "root": {
           "type": "string"
+        },
+        "served_model_name": {
+          "description": "Exact model name configured on the vLLM API, independent of checkpoint identity.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [

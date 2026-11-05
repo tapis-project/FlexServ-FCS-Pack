@@ -1,0 +1,34 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.vllm.execute
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: Execute v2 Auto or Manual inside one existing workflow root.
+    parameters_schema: schemas/input.json
+    output_schema: schemas/output.json
+  policy:
+    derive: dependencies
+    resources:
+    - local_vllm
+  steps:
+  - id: run
+    kind: call
+    tool:
+      name: local.vllm.v2.run
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input: '{{params}}'
+      process_group_version: 1
+  result: '{{steps.run}}'
+  execution:
+    mode: background
+    timeout_seconds: 7200
+    max_calls: 512
+  distribution:
+    mode: collective
+    default_selector:
+      role: worker

@@ -1,0 +1,19 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.vllm.logs
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    from_native:
+      name: process.logs.read
+      version: 1.0.0
+  policy: {}
+  steps:
+  - id: read
+    kind: call
+    tool:
+      name: process.logs.read
+      version: 1.0.0
+    input: '{{params}}'

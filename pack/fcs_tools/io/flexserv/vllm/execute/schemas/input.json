@@ -1,0 +1,402 @@
+{
+  "additionalProperties": false,
+  "description": "Public v2 input. Job paths and catalog paths are supplied exclusively by the host.",
+  "properties": {
+    "advanced": {
+      "default": null,
+      "description": "Typed wizard data is retained as planning intent; executable flags remain validated."
+    },
+    "command": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "common_args": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "device_ids": {
+      "default": [],
+      "description": "Ordered default device selection, overridden by the local role selection.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "head": {
+      "$ref": "#/$defs/RoleOptions",
+      "default": {
+        "args": [],
+        "device_ids": [],
+        "env": {}
+      }
+    },
+    "hf_token_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SecretRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "model_id": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "model_path": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "node_overrides": {
+      "additionalProperties": {
+        "$ref": "#/$defs/RoleOptions"
+      },
+      "default": {},
+      "type": "object"
+    },
+    "pause_for_review": {
+      "default": false,
+      "type": "boolean"
+    },
+    "preferred_recipe_model_id": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "provider_model_id": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "requirements": {
+      "$ref": "#/$defs/Requirements",
+      "default": {
+        "context_tokens": null,
+        "features": [],
+        "goal": "balanced",
+        "max_gpus": null,
+        "max_nodes": null,
+        "precision_policy": "preserve"
+      }
+    },
+    "review_policy": {
+      "default": "",
+      "description": "Plan-only review is mandatory for the Advanced manual declaration.",
+      "type": "string"
+    },
+    "revision": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "runtime": {
+      "$ref": "#/$defs/Runtime",
+      "default": {
+        "hardware_env": "auto",
+        "vllm_directory": null,
+        "vllm_version": null
+      }
+    },
+    "served_model_name": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source": {
+      "default": "auto",
+      "type": "string"
+    },
+    "workers": {
+      "$ref": "#/$defs/RoleOptions",
+      "default": {
+        "args": [],
+        "device_ids": [],
+        "env": {}
+      }
+    }
+  },
+  "type": "object",
+  "$defs": {
+    "DeploymentV2": {
+      "additionalProperties": false,
+      "description": "Public v2 input. Job paths and catalog paths are supplied exclusively by the host.",
+      "properties": {
+        "advanced": {
+          "default": null,
+          "description": "Typed wizard data is retained as planning intent; executable flags remain validated."
+        },
+        "command": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "common_args": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "device_ids": {
+          "default": [],
+          "description": "Ordered default device selection, overridden by the local role selection.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "head": {
+          "$ref": "#/$defs/RoleOptions",
+          "default": {
+            "args": [],
+            "device_ids": [],
+            "env": {}
+          }
+        },
+        "hf_token_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SecretRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "model_id": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model_path": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "node_overrides": {
+          "additionalProperties": {
+            "$ref": "#/$defs/RoleOptions"
+          },
+          "default": {},
+          "type": "object"
+        },
+        "pause_for_review": {
+          "default": false,
+          "type": "boolean"
+        },
+        "preferred_recipe_model_id": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provider_model_id": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "requirements": {
+          "$ref": "#/$defs/Requirements",
+          "default": {
+            "context_tokens": null,
+            "features": [],
+            "goal": "balanced",
+            "max_gpus": null,
+            "max_nodes": null,
+            "precision_policy": "preserve"
+          }
+        },
+        "review_policy": {
+          "default": "",
+          "description": "Plan-only review is mandatory for the Advanced manual declaration.",
+          "type": "string"
+        },
+        "revision": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "runtime": {
+          "$ref": "#/$defs/Runtime",
+          "default": {
+            "hardware_env": "auto",
+            "vllm_directory": null,
+            "vllm_version": null
+          }
+        },
+        "served_model_name": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "default": "auto",
+          "type": "string"
+        },
+        "workers": {
+          "$ref": "#/$defs/RoleOptions",
+          "default": {
+            "args": [],
+            "device_ids": [],
+            "env": {}
+          }
+        }
+      },
+      "type": "object"
+    },
+    "Requirements": {
+      "additionalProperties": false,
+      "description": "Service requirements remain explicit while mechanical deployment settings are derived.",
+      "properties": {
+        "context_tokens": {
+          "default": null,
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "features": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "goal": {
+          "default": "balanced",
+          "type": "string"
+        },
+        "max_gpus": {
+          "default": null,
+          "format": "uint",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "max_nodes": {
+          "default": null,
+          "format": "uint",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "precision_policy": {
+          "default": "preserve",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "RoleOptions": {
+      "additionalProperties": false,
+      "description": "Per-role and per-member engine options, merged after common options.",
+      "properties": {
+        "args": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "device_ids": {
+          "default": [],
+          "description": "Ordered subset of this member's protected physical device allocation.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "env": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "Runtime": {
+      "additionalProperties": false,
+      "description": "Runtime selections refer only to host-approved profiles and executable directories.",
+      "properties": {
+        "hardware_env": {
+          "default": "auto",
+          "type": "string"
+        },
+        "vllm_directory": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "vllm_version": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "SecretRef": {
+      "additionalProperties": false,
+      "description": "Secret capabilities contain references only, never plaintext credential values.",
+      "properties": {
+        "secret_ref": {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "secret_ref"
+      ],
+      "type": "object"
+    }
+  }
+}

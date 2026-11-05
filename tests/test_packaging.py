@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 import zipfile
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('package_pack', ROOT / 'scripts/package_pack.py')
@@ -13,6 +14,21 @@ spec.loader.exec_module(packager)
 
 
 class Packaging(unittest.TestCase):
+    def test_only_reviewed_native_envelopes_enable_process_groups(self):
+        root = ROOT / 'pack/fcs_tools/io/flexserv/vllm'
+        for alias in ('advanced/inspect', 'execute', 'deploy'):
+            path = root / alias
+            tool = yaml.safe_load((path / 'tool.yaml').read_text())
+            envelope = tool['spec']['steps'][0]['input']
+            self.assertEqual(envelope['input'], '{{params}}')
+            if alias == 'deploy':
+                self.assertNotIn('process_group_version', envelope)
+            else:
+                self.assertEqual(envelope['process_group_version'], 1)
+            public = json.loads((path / 'schemas/input.json').read_text())
+            self.assertNotIn('process_group_version', public['properties'])
+            self.assertFalse(public['additionalProperties'])
+
     def test_portable_deterministic_catalog(self):
         with tempfile.TemporaryDirectory() as directory:
             a, b = Path(directory) / 'a.zip', Path(directory) / 'b.zip'
@@ -26,6 +42,7 @@ class Packaging(unittest.TestCase):
                 manifest = json.loads(archive.read('manifest.json'))
                 namespaces = {t['name'] for t in manifest['toolsets']}
                 self.assertIn('io.flexserv.deployments', namespaces)
+                self.assertIn('io.flexserv.models', namespaces)
                 self.assertIn('io.tapis.workflows', namespaces)
                 self.assertEqual(len(names) - 1, len(archive.read('checksums.sha256').splitlines()))
 

@@ -1,0 +1,3963 @@
+{
+  "schema_version": 1,
+  "backend": "mistralrs",
+  "status": "design; gateway/FCS integration pending",
+  "reviewed_at": "2026-11-04",
+  "upstream": {
+    "version": "0.9.5",
+    "git_commit": "465191d0b0a7e2432d327b0de06204ab3f94d3a2",
+    "repository": "https://github.com/EricLBuehler/mistral.rs",
+    "default_features": [
+      "code-execution"
+    ],
+    "source_paths_relative_to": "upstream repository root"
+  },
+  "command": [
+    "mistralrs",
+    "serve"
+  ],
+  "scope": "Flat serve (automatic model type) plus inherited globals; excludes run/bench/tune/quantize flags. Typed serve subcommands are not emitted by the wizard.",
+  "counts": {
+    "serve_specific": 85,
+    "inherited_global": 4,
+    "configuration_options": 89,
+    "informational_options": 2,
+    "including_help_and_version": 91,
+    "configuration_without_code_execution": 80
+  },
+  "launch_policy": {
+    "nodes": 1,
+    "required_environment": {
+      "MISTRALRS_NO_NCCL": "1"
+    },
+    "forbidden_environment": [
+      "RING_CONFIG",
+      "MISTRALRS_MN_*"
+    ],
+    "gpu_visibility_environment": "CUDA_VISIBLE_DEVICES",
+    "gpu_selection": "Only devices granted to this job; preserve scheduler/container mapping; no default host ordinals.",
+    "managed_options": [
+      "model-id",
+      "port",
+      "host",
+      "hf-cache"
+    ],
+    "recommended_switches": [
+      "no-ui"
+    ],
+    "argument_encoding": "argv array plus separate env map; never shell interpolation",
+    "default_optional_behavior": "omit unset options"
+  },
+  "presets": {
+    "quality": {
+      "tune_profile": "quality",
+      "policy": "Prefer the selected checkpoint unchanged when it fits the full workload; otherwise present compatible higher-precision quantization alternatives."
+    },
+    "balanced": {
+      "tune_profile": "balanced",
+      "policy": "Use validated tuner candidates; CUDA/CPU preference starts at Q6K, then Q5K/Q4K/Q3K; Metal starts AFQ6, then AFQ4/AFQ3."
+    },
+    "speedy": {
+      "tune_profile": "fast",
+      "policy": "Use validated tuner candidates; CUDA/CPU preference starts Q4K, then Q3K/Q2K; Metal AFQ4, then AFQ3/AFQ2. Faster inference is not guaranteed."
+    }
+  },
+  "recommendation": {
+    "command": [
+      "mistralrs",
+      "tune",
+      "--model-id",
+      "{model}",
+      "--profile",
+      "{profile}",
+      "--json"
+    ],
+    "environment": "Same allocated devices and MISTRALRS_NO_NCCL=1 as serve.",
+    "consume_fields": [
+      "candidates",
+      "recommended_isq",
+      "device_layers_cli",
+      "paged_attn_mode",
+      "total_vram_bytes",
+      "warnings",
+      "notes"
+    ],
+    "never_execute_field": "recommended_command",
+    "limitations": [
+      "Estimator, not a benchmark or fit guarantee.",
+      "CLI tune does not accept serve runtime/concurrency flags; account for serving workload separately.",
+      "Adapters are rejected by tune because their memory is not estimated.",
+      "Model/format support varies; unavailable tuning means manual configuration with an explicit unknown estimate.",
+      "--quant may select a different published artifact than the ISQ candidate. Recheck its metadata and memory.",
+      "Do not silently lower precision or context length after failure.",
+      "Upstream quality prefers quantized candidates too; FlexServ must explicitly check the unchanged-checkpoint candidate first."
+    ],
+    "quant_emit": "Resolve the chosen supported candidate to an explicit --quant value, or omit quantization flags for the selected checkpoint unchanged. For exact GGUF use --quantized-file, and use --isq only for explicit requantization."
+  },
+  "quantization_numeric_mapping": {
+    "cuda_cpu": {
+      "2": "q2k",
+      "3": "q3k",
+      "4": "q4k",
+      "5": "q5k",
+      "6": "q6k",
+      "8": "q8_0"
+    },
+    "metal": {
+      "2": "afq2",
+      "3": "afq3",
+      "4": "afq4",
+      "5": "q5k",
+      "6": "afq6",
+      "8": "afq8"
+    },
+    "applies_to": "Numeric ISQ or quant falling back to ISQ, not necessarily the selected published artifact."
+  },
+  "flags": [
+    {
+      "id": "model-id",
+      "flag": "--model-id",
+      "aliases": [
+        "-m"
+      ],
+      "label": "Model",
+      "group": "model",
+      "syntax": "-m, --model-id <MODEL_ID>",
+      "description": "Hugging Face model ID or local model directory; optional when `-f` names local files",
+      "when_to_set": "Select the checkpoint to serve, as a Hugging Face repository or an existing local directory.",
+      "values": {
+        "type": "string"
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "conditional",
+        "condition": "A model source is always required; --model-id may be omitted only with existing local quantized files in flat serve."
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "No default model. Required unless flat serve uses existing local GGUF/GGML files with a common parent directory."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "common",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ],
+      "flexserv_policy": "Wizard requires a model selection and emits --model-id for its canonical launch path."
+    },
+    {
+      "id": "tokenizer",
+      "flag": "--tokenizer",
+      "aliases": [
+        "-t"
+      ],
+      "label": "Tokenizer",
+      "group": "model",
+      "syntax": "-t, --tokenizer <TOKENIZER>",
+      "description": "Path to local tokenizer.json file",
+      "when_to_set": "Override missing or incorrect tokenizer assets with a local tokenizer.json.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Load tokenizer assets from the selected model; missing assets can still cause failure."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "arch",
+      "flag": "--arch",
+      "aliases": [
+        "-a"
+      ],
+      "label": "Model architecture",
+      "group": "model",
+      "syntax": "-a, --arch <ARCH>",
+      "description": "Model architecture (auto-detected if not specified)",
+      "when_to_set": "Override failed architecture detection with a supported text-model loader.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "mistral",
+          "gemma",
+          "mixtral",
+          "llama",
+          "phi2",
+          "phi3",
+          "qwen2",
+          "gemma2",
+          "starcoder2",
+          "phi3.5moe",
+          "deepseekv2",
+          "deepseekv3",
+          "qwen3",
+          "glm4",
+          "glm4moelite",
+          "glm4moe",
+          "qwen3moe",
+          "smollm3",
+          "granitemoehybrid",
+          "gpt_oss",
+          "hunyuanv1dense",
+          "hunyuanv1moe",
+          "qwen3next",
+          "qwen3_5",
+          "lfm2",
+          "lfm2_moe"
+        ]
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Detect the model architecture from its configuration; unsupported architectures still fail."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs",
+        "mistralrs-core/src/pipeline/loaders/normal_loaders.rs"
+      ]
+    },
+    {
+      "id": "dtype",
+      "flag": "--dtype",
+      "aliases": [],
+      "label": "Compute precision",
+      "group": "model",
+      "syntax": "--dtype <DTYPE>",
+      "description": "Model data type",
+      "when_to_set": "Control floating-point compute precision or work around unsupported hardware precision.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "bf16",
+          "f16",
+          "f32"
+        ]
+      },
+      "cli_default": "auto",
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "auto selects supported precision, preferring BF16, then F16, then F32; quantized loaders may determine their own precision."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs",
+        "mistralrs-core/src/utils/normal.rs"
+      ]
+    },
+    {
+      "id": "hf-overrides",
+      "flag": "--hf-overrides",
+      "aliases": [],
+      "label": "Hf overrides",
+      "group": "model",
+      "syntax": "--hf-overrides <HF_OVERRIDES>",
+      "description": "Recursively merged JSON overrides for the Hugging Face model config",
+      "when_to_set": "Override model configuration fields, such as compatible RoPE settings, using a JSON object.",
+      "values": {
+        "type": "json_object",
+        "description": "A recursively merged JSON object accepted by the HF configuration override parser."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the original checkpoint configuration without overrides."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs",
+        "mistralrs-core/src/pipeline/hf_config.rs"
+      ]
+    },
+    {
+      "id": "max-model-len",
+      "flag": "--max-model-len",
+      "aliases": [],
+      "label": "Max model len",
+      "group": "model",
+      "syntax": "--max-model-len <MAX_MODEL_LEN>",
+      "description": "Runtime model context length",
+      "when_to_set": "Cap context length to the workload and available memory; increasing beyond native limits needs model-specific validation.",
+      "values": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Use the checkpoint's configured native context length."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "common",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "format",
+      "flag": "--format",
+      "aliases": [],
+      "label": "Format",
+      "group": "model",
+      "syntax": "--format <FORMAT>",
+      "description": "Model format: plain (safetensors), GGUF, or GGML. Auto-detected from `-f` when not specified. Possible values: `plain`, `gguf`, `ggml`.",
+      "when_to_set": "Select an explicit loader format when file suffix detection is unavailable or ambiguous.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "plain",
+          "gguf",
+          "ggml"
+        ]
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Infer GGUF/GGML from explicit file suffixes; otherwise use the plain loader until quant discovery resolves an artifact."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "quantized-file",
+      "flag": "--quantized-file",
+      "aliases": [
+        "-f"
+      ],
+      "label": "Quantized file",
+      "group": "model",
+      "syntax": "-f, --quantized-file <QUANTIZED_FILE>",
+      "description": "GGUF/GGML filename(s); the suffix selects the format (semicolon-separated for multiple)",
+      "when_to_set": "Select exact GGUF/GGML files or local shards instead of quantization discovery.",
+      "values": {
+        "type": "string",
+        "description": "Filename(s) or existing local .gguf/.ggml paths separated by semicolons; shards must share a parent if model-id is omitted."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "No exact file selected. Plain checkpoints use their weights; GGUF selection needs an explicit file or a matching --quant target."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "quant"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "mmproj",
+      "flag": "--mmproj",
+      "aliases": [],
+      "label": "Mmproj",
+      "group": "model",
+      "syntax": "--mmproj <MMPROJ>",
+      "description": "GGUF projector override; auto-selected when unambiguous (semicolon-separated for multiple)",
+      "when_to_set": "Select a specific GGUF multimodal projector when companion selection is ambiguous.",
+      "values": {
+        "type": "string",
+        "description": "GGUF projector filename(s), semicolon-separated for shards; only GGUF is supported."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Select a compatible GGUF projector when companion discovery is unambiguous; require an explicit choice if ambiguous."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "GGUF only. Specify if companion discovery is ambiguous; not valid for plain/GGML."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "tok-model-id",
+      "flag": "--tok-model-id",
+      "aliases": [],
+      "label": "Tok model id",
+      "group": "model",
+      "syntax": "--tok-model-id <TOK_MODEL_ID>",
+      "description": "Optional model ID overriding configuration, tokenizer, and processor assets for a quantized model",
+      "when_to_set": "Use tokenizer/config/processor assets from another repository for a quantized checkpoint.",
+      "values": {
+        "type": "string"
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Use the selected checkpoint's configuration/tokenizer/processor assets."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "gqa",
+      "flag": "--gqa",
+      "aliases": [],
+      "label": "Gqa",
+      "group": "model",
+      "syntax": "--gqa <GQA>",
+      "description": "GQA value for GGML models",
+      "when_to_set": "Supply the group-query attention setting required by a GGML checkpoint.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": 1,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default 1."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "GGML only; ignored by other formats."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "enable-lora",
+      "flag": "--enable-lora",
+      "aliases": [],
+      "label": "Enable lora",
+      "group": "adapters",
+      "syntax": "--enable-lora",
+      "description": "Enable dynamic LoRA without preloading an adapter. Supports compatible text and multimodal language models, including GGUF. Vision, audio, and projector adapters are unsupported",
+      "when_to_set": "Allow language-model LoRA adapters to be loaded later without preloading one at startup.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "xlora",
+        "legacy-lora"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Compatible language-model layers, including supported multimodal/GGUF models. Vision/audio/projector adapters are unsupported."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "lora",
+      "flag": "--lora",
+      "aliases": [
+        "--lora-modules"
+      ],
+      "label": "Lora",
+      "group": "adapters",
+      "syntax": "--lora <ALIAS=SOURCE|JSON>",
+      "description": "Preload a language-model LoRA adapter as ALIAS=SOURCE. Supports compatible text and multimodal language models, including GGUF. Remote adapters use revision main. May be repeated. Vision, audio, and projector adapters are unsupported",
+      "when_to_set": "Preload named language-model adapters to select in requests; repeated values add more adapters.",
+      "values": {
+        "type": "string_array",
+        "description": "Repeat --lora with ALIAS=SOURCE or JSON {name,path,revision?,base_model_name?,is_3d_lora_weight?}; multiple values per occurrence are accepted."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "xlora",
+        "legacy-lora"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Compatible language-model layers, including supported multimodal/GGUF models. Vision/audio/projector adapters are unsupported."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "lora-max-adapters",
+      "flag": "--lora-max-adapters",
+      "aliases": [],
+      "label": "Lora max adapters",
+      "group": "adapters",
+      "syntax": "--lora-max-adapters <LORA_MAX_ADAPTERS>",
+      "description": "Maximum loaded LoRA aliases and, independently, resident adapter generations",
+      "when_to_set": "Limit adapter aliases and resident generations to control adapter capacity.",
+      "values": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "cli_default": 16,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default 16."
+      },
+      "requires_all": [],
+      "requires_any": [
+        "enable-lora",
+        "lora"
+      ],
+      "conflicts": [
+        "xlora",
+        "legacy-lora"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Changing the default limit requires dynamic LoRA; incompatible with X-LoRA or legacy LoRA."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "lora-max-rank",
+      "flag": "--lora-max-rank",
+      "aliases": [
+        "--max-lora-rank"
+      ],
+      "label": "Lora max rank",
+      "group": "adapters",
+      "syntax": "--lora-max-rank <LORA_MAX_RANK>",
+      "description": "Maximum rank accepted for a LoRA adapter",
+      "when_to_set": "Limit accepted adapter rank and its runtime memory requirements.",
+      "values": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "cli_default": 256,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default 256."
+      },
+      "requires_all": [],
+      "requires_any": [
+        "enable-lora",
+        "lora"
+      ],
+      "conflicts": [
+        "xlora",
+        "legacy-lora"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Changing the default limit requires dynamic LoRA; incompatible with X-LoRA or legacy LoRA."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "lora-max-bytes",
+      "flag": "--lora-max-bytes",
+      "aliases": [],
+      "label": "Lora max bytes",
+      "group": "adapters",
+      "syntax": "--lora-max-bytes <BYTES>",
+      "description": "Maximum memory used by loaded adapters",
+      "when_to_set": "Bound memory consumed by loaded adapters.",
+      "values": {
+        "type": "string",
+        "description": "Positive byte count or KB/MB/GB/KiB/MiB/GiB suffix, e.g. 8GiB."
+      },
+      "cli_default": 8589934592,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default 8589934592."
+      },
+      "requires_all": [],
+      "requires_any": [
+        "enable-lora",
+        "lora"
+      ],
+      "conflicts": [
+        "xlora",
+        "legacy-lora"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Changing the default limit requires dynamic LoRA; incompatible with X-LoRA or legacy LoRA."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "legacy-lora",
+      "flag": "--legacy-lora",
+      "aliases": [],
+      "label": "Legacy lora",
+      "group": "adapters",
+      "syntax": "--legacy-lora <SOURCE>",
+      "description": "Static LoRA adapter source for GGML or a Phi3 GGUF model",
+      "when_to_set": "Load a static adapter for GGML or Phi3 GGUF with its ordering file.",
+      "values": {
+        "type": "string"
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "conditional",
+        "condition": "Required when --legacy-lora-order is explicitly set."
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [
+        "legacy-lora-order"
+      ],
+      "requires_any": [],
+      "conflicts": [
+        "xlora",
+        "enable-lora",
+        "lora",
+        "lora-max-adapters",
+        "lora-max-rank",
+        "lora-max-bytes"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "legacy-lora-order",
+      "flag": "--legacy-lora-order",
+      "aliases": [],
+      "label": "Legacy lora order",
+      "group": "adapters",
+      "syntax": "--legacy-lora-order <LEGACY_LORA_ORDER>",
+      "description": "Ordering JSON file for a legacy raw GGUF or GGML LoRA adapter",
+      "when_to_set": "Provide the ordering JSON paired with a static legacy adapter.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "conditional",
+        "condition": "Required when --legacy-lora is explicitly set."
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [
+        "legacy-lora"
+      ],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "xlora",
+      "flag": "--xlora",
+      "aliases": [],
+      "label": "Xlora",
+      "group": "adapters",
+      "syntax": "--xlora <XLORA>",
+      "description": "X-LoRA adapter model ID",
+      "when_to_set": "Load an X-LoRA adapter model with its ordering JSON.",
+      "values": {
+        "type": "string"
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "conditional",
+        "condition": "Required when --xlora-order, --tgt-non-granular-index is explicitly set."
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [
+        "xlora-order"
+      ],
+      "requires_any": [],
+      "conflicts": [
+        "enable-lora",
+        "lora",
+        "legacy-lora",
+        "lora-max-adapters",
+        "lora-max-rank",
+        "lora-max-bytes"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "xlora-order",
+      "flag": "--xlora-order",
+      "aliases": [],
+      "label": "Xlora order",
+      "group": "adapters",
+      "syntax": "--xlora-order <XLORA_ORDER>",
+      "description": "X-LoRA ordering JSON file",
+      "when_to_set": "Provide the ordering JSON paired with X-LoRA.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "conditional",
+        "condition": "Required when --xlora is explicitly set."
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [
+        "xlora"
+      ],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "tgt-non-granular-index",
+      "flag": "--tgt-non-granular-index",
+      "aliases": [],
+      "label": "Tgt non granular index",
+      "group": "adapters",
+      "syntax": "--tgt-non-granular-index <TGT_NON_GRANULAR_INDEX>",
+      "description": "Target non-granular index for X-LoRA",
+      "when_to_set": "Override the X-LoRA non-granular target index for a compatible adapter.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [
+        "xlora"
+      ],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "quant",
+      "flag": "--quant",
+      "aliases": [],
+      "label": "Weight quantization",
+      "group": "quantization",
+      "syntax": "--quant <QUANT>",
+      "description": "Quantization target. Inference commands select a matching GGUF or UQFF artifact when available. Source checkpoints without a matching UQFF use in-situ quantization. `tune` evaluates the requested level instead of selecting an artifact. Accepts numeric levels (`2`, `3`, `4`, `5`, `6`, `8`) or supported quantization names Code also supports auto on eligible non-GGUF source checkpoints, using the balanced tuner.",
+      "when_to_set": "Reduce model memory using a published quantized artifact when available, or runtime quantization for a supported source checkpoint.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "8",
+          "q4_0",
+          "q4_1",
+          "q5_0",
+          "q5_1",
+          "q8_0",
+          "q8_1",
+          "q2k",
+          "q3k",
+          "q4k",
+          "q5k",
+          "q6k",
+          "q8k",
+          "hqq8",
+          "hqq4",
+          "fp8",
+          "afq8",
+          "afq6",
+          "afq4",
+          "afq3",
+          "afq2",
+          "f8q8",
+          "mxfp4"
+        ],
+        "description": "Source checkpoints accept these values. GGUF accepts published GGUF quant labels such as Q4_K_M, discovered from that repository; auto is invalid for GGUF.",
+        "allow_discovered_values": true
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "No extra quantization selection or automatic tuner. Load the selected checkpoint's existing precision/quantization."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "isq",
+        "from-uqff",
+        "quantized-file"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Mutually exclusive with exact files; unsupported for GGML. auto uses balanced tuning only for supported non-GGUF sources."
+      },
+      "ui": {
+        "visibility": "common",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs",
+        "mistralrs-cli/src/commands/quant.rs",
+        "mistralrs-cli/src/commands/serve.rs",
+        "mistralrs-core/src/tuning.rs"
+      ]
+    },
+    {
+      "id": "isq",
+      "flag": "--isq",
+      "aliases": [],
+      "label": "Force runtime quantization",
+      "group": "quantization",
+      "syntax": "--isq <IN_SITU_QUANT>",
+      "description": "In-situ quantization target. Accepts numeric levels (`2`, `3`, `4`, `5`, `6`, `8`) or raw quant names (`q4k`, `q8_0`, etc.). Supports compatible GGUF sources",
+      "when_to_set": "Force runtime quantization instead of artifact discovery, including compatible selected GGUF sources.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "8",
+          "q4_0",
+          "q4_1",
+          "q5_0",
+          "q5_1",
+          "q8_0",
+          "q8_1",
+          "q2k",
+          "q3k",
+          "q4k",
+          "q5k",
+          "q6k",
+          "q8k",
+          "hqq8",
+          "hqq4",
+          "fp8",
+          "afq8",
+          "afq6",
+          "afq4",
+          "afq3",
+          "afq2",
+          "f8q8",
+          "mxfp4"
+        ],
+        "description": "Case-insensitive runtime ISQ names. Device/build compatibility must also be checked."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Do not force runtime quantization; --quant may independently resolve to ISQ."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "quant"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Model/quantization/device must support ISQ. CUDA rejects q8_1/q8k; f8q8 is CPU-only; mxfp4 requires a supported GPU/build. --isq and --from-uqff are not declared conflicting by clap; verify loader semantics rather than assuming they combine."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs",
+        "mistralrs-core/src/pipeline/isq.rs"
+      ]
+    },
+    {
+      "id": "from-uqff",
+      "flag": "--from-uqff",
+      "aliases": [],
+      "label": "UQFF artifact",
+      "group": "quantization",
+      "syntax": "--from-uqff <FROM_UQFF>",
+      "description": "UQFF artifact to load. Accepts a filename, numeric quantization level (`2`, `3`, `4`, `5`, `6`, `8`), or quantization type (`q4k`, `afq8`, etc.). Report-declared artifacts and conventional shard names expand to all of their shards. Use semicolons only to list disjoint shards manually",
+      "when_to_set": "Load a known UQFF artifact, quantization shorthand, or explicit shard list.",
+      "values": {
+        "type": "string",
+        "description": "UQFF filename, quantization shorthand/name, or semicolon-separated disjoint shard files; named/report shards expand automatically."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "No explicit UQFF selection; --quant may independently discover one."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "quant"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "UQFF-capable loader and compatible artifacts; explicit shard files must be available."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "isq-organization",
+      "flag": "--isq-organization",
+      "aliases": [],
+      "label": "Isq organization",
+      "group": "quantization",
+      "syntax": "--isq-organization <ISQ_ORGANIZATION>",
+      "description": "ISQ organization strategy: default or moqe",
+      "when_to_set": "Choose whole-model quantization or MoE-expert-only quantization for compatible models.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "default",
+          "moqe"
+        ]
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the default quantization organization when quantizing."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "moqe affects MoE expert quantization, not every model architecture."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "imatrix",
+      "flag": "--imatrix",
+      "aliases": [],
+      "label": "Imatrix",
+      "group": "quantization",
+      "syntax": "--imatrix <IMATRIX>",
+      "description": "imatrix file for enhanced quantization",
+      "when_to_set": "Use an existing importance matrix to improve supported quantization methods.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Do not load an external importance matrix."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "calibration-file"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "calibration-file",
+      "flag": "--calibration-file",
+      "aliases": [],
+      "label": "Calibration file",
+      "group": "quantization",
+      "syntax": "--calibration-file <CALIBRATION_FILE>",
+      "description": "Calibration file for imatrix generation",
+      "when_to_set": "Generate an importance matrix from calibration data instead of loading an imatrix.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Do not request calibration-data imatrix generation."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "imatrix"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "cpu",
+      "flag": "--cpu",
+      "aliases": [],
+      "label": "CPU only",
+      "group": "devices",
+      "syntax": "--cpu",
+      "description": "Force CPU-only execution",
+      "when_to_set": "Force CPU execution when no GPU is intended or for diagnostics.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the accelerator backend available to the build/runtime rather than forcing CPU."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "common",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "device-layers",
+      "flag": "--device-layers",
+      "aliases": [
+        "-n"
+      ],
+      "label": "Device layers",
+      "group": "devices",
+      "syntax": "-n, --device-layers <DEVICE_LAYERS>",
+      "description": "Device layer mapping (format: ORD:NUM;... e.g., \"0:10;1:20\") Omit for automatic device mapping",
+      "when_to_set": "Manually assign layer counts to visible GPUs when automatic placement is unsuitable.",
+      "values": {
+        "type": "string",
+        "description": "Semicolon-separated visible-ordinal:layer-count pairs, e.g. 0:10;1:20. This controls layer placement, not GPU visibility."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Automatically map contiguous layers over available visible devices; CPU offload can occur if GPU memory is insufficient."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs",
+        "docs/src/content/docs/guides/perf/distributed-inference.mdx"
+      ]
+    },
+    {
+      "id": "topology",
+      "flag": "--topology",
+      "aliases": [],
+      "label": "Topology",
+      "group": "devices",
+      "syntax": "--topology <TOPOLOGY>",
+      "description": "Topology YAML file for device mapping",
+      "when_to_set": "Supply per-layer device/quantization placement in a topology YAML file.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "No explicit topology; automatic mapping or --device-layers governs placement."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "hf-cache",
+      "flag": "--hf-cache",
+      "aliases": [],
+      "label": "Model cache",
+      "group": "devices",
+      "syntax": "--hf-cache <HF_CACHE>",
+      "description": "Custom Hugging Face cache directory",
+      "when_to_set": "Use the configured FlexServ model cache rather than the upstream default cache location.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use upstream Hugging Face cache resolution unless the site environment already overrides it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "managed",
+        "editable": false
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ],
+      "flexserv_policy": "Resolved by FCS/site configuration; show the effective value in the launch review."
+    },
+    {
+      "id": "paged-attn",
+      "flag": "--paged-attn",
+      "aliases": [],
+      "label": "Paged attn",
+      "group": "memory",
+      "syntax": "--paged-attn <MODE>",
+      "description": "PagedAttention mode - auto: enabled on CUDA and Metal, disabled on CPU (default) - on: force enable (fails if unsupported) - off: force disable. Possible values: `auto`, `on`, `off`.",
+      "when_to_set": "Override automatic paged attention selection for compatibility or controlled benchmarking.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "on",
+          "off"
+        ]
+      },
+      "cli_default": "auto",
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "auto enables supported CUDA/Metal paged attention and disables it on CPU; model/build restrictions still apply."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/paged_attn.rs"
+      ]
+    },
+    {
+      "id": "gpu-memory-utilization",
+      "flag": "--gpu-memory-utilization",
+      "aliases": [],
+      "label": "GPU memory budget",
+      "group": "memory",
+      "syntax": "--gpu-memory-utilization <GPU_MEMORY_UTILIZATION>",
+      "description": "Fraction of physical GPU memory available to model weights, workspace, and KV cache",
+      "when_to_set": "Set a physical VRAM budget for weights, workspace and KV cache together; this is not only a KV-cache fraction.",
+      "values": {
+        "type": "number",
+        "exclusiveMinimum": 0,
+        "maximum": 1
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Use MemoryGoal::Auto: reserve max(5% of physical VRAM, 1 GiB) on discrete GPUs; unified memory reserves min(25%, 16 GiB). Account for occupied/free memory and working-set limits."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "kv-cache"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Explicit memory goals require paged attention; cannot combine with --paged-attn off."
+      },
+      "ui": {
+        "visibility": "common",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/paged_attn.rs",
+        "mistralrs-core/src/memory_plan.rs"
+      ]
+    },
+    {
+      "id": "kv-cache",
+      "flag": "--kv-cache",
+      "aliases": [],
+      "label": "KV cache capacity",
+      "group": "memory",
+      "syntax": "--kv-cache <KV_CACHE>",
+      "description": "Explicit KV cache capacity, such as 4GiB or 65536tokens",
+      "when_to_set": "Request an explicit KV-cache byte or token capacity instead of automatic sizing.",
+      "values": {
+        "type": "string",
+        "description": "Positive capacity with units, e.g. 4GiB or 65536tokens; bare numbers and auto are invalid."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Automatically size the cache with the selected memory budget, model and runtime requirements."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "gpu-memory-utilization"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Explicit memory goals require paged attention; cannot combine with --paged-attn off."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/paged_attn.rs",
+        "mistralrs-core/src/memory_plan.rs"
+      ]
+    },
+    {
+      "id": "pa-block-size",
+      "flag": "--pa-block-size",
+      "aliases": [],
+      "label": "Pa block size",
+      "group": "memory",
+      "syntax": "--pa-block-size <BLOCK_SIZE>",
+      "description": "Tokens per block (default: 32 on CUDA and Metal)",
+      "when_to_set": "Tune paged-cache block allocation for a verified backend/model combination.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use 32 tokens per block on CUDA/Metal."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Must be supported by the selected paged-attention kernels; leave unset unless validated."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/paged_attn.rs"
+      ]
+    },
+    {
+      "id": "pa-cache-type",
+      "flag": "--pa-cache-type",
+      "aliases": [],
+      "label": "KV cache precision",
+      "group": "memory",
+      "syntax": "--pa-cache-type <CACHE_TYPE>",
+      "description": "KV cache quantization type",
+      "when_to_set": "Reduce KV memory with FP8 on a supported CUDA or Metal build and model.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "f8e4m3"
+        ]
+      },
+      "cli_default": "auto",
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "auto uses model dtype for KV storage; it does not automatically choose FP8."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "f8e4m3 needs supported CUDA (compute capability >= 8.0 with a matching build) or Metal paged attention and a supported model."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/paged_attn.rs",
+        "mistralrs-core/src/paged_attention/cache_engine.rs"
+      ]
+    },
+    {
+      "id": "encoder-cache-memory-mb",
+      "flag": "--encoder-cache-memory-mb",
+      "aliases": [],
+      "label": "Encoder cache memory mb",
+      "group": "multimodal",
+      "syntax": "--encoder-cache-memory-mb <ENCODER_CACHE_MEMORY_MB>",
+      "description": "Maximum logical tensor memory retained by the multimodal encoder cache, in MiB",
+      "when_to_set": "Bound retained multimodal encoder tensors when repeated media consumes too much memory.",
+      "values": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the model/runtime encoder-cache default; no universal fixed MiB value is specified by the CLI."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Multimodal models with a loader supporting this setting; image-count/length fields are planning assumptions, not a standalone request limiter."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "max-edge",
+      "flag": "--max-edge",
+      "aliases": [],
+      "label": "Max edge",
+      "group": "multimodal",
+      "syntax": "--max-edge <MAX_EDGE>",
+      "description": "Maximum edge length for image resizing (aspect ratio preserved)",
+      "when_to_set": "Resize images to reduce vision processing and memory, at possible detail loss.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use model processor resizing behavior without this override."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Multimodal models with a loader supporting this setting; image-count/length fields are planning assumptions, not a standalone request limiter."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs"
+      ]
+    },
+    {
+      "id": "max-num-images",
+      "flag": "--max-num-images",
+      "aliases": [],
+      "label": "Max num images",
+      "group": "multimodal",
+      "syntax": "--max-num-images <MAX_NUM_IMAGES>",
+      "description": "Maximum number of images per request",
+      "when_to_set": "Set the image-count assumption used in multimodal device-memory planning for the workload.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use 1 image for automatic device-mapping estimates; do not treat this flag alone as HTTP request validation."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Multimodal models with a loader supporting this setting; image-count/length fields are planning assumptions, not a standalone request limiter."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs",
+        "mistralrs-core/src/pipeline/loaders/auto_device_map.rs"
+      ]
+    },
+    {
+      "id": "max-image-length",
+      "flag": "--max-image-length",
+      "aliases": [],
+      "label": "Max image length",
+      "group": "multimodal",
+      "syntax": "--max-image-length <MAX_IMAGE_LENGTH>",
+      "description": "Maximum image dimension for device mapping",
+      "when_to_set": "Set the image-dimension assumption used in multimodal device-memory planning.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use 1024 for automatic device-mapping estimates."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Multimodal models with a loader supporting this setting; image-count/length fields are planning assumptions, not a standalone request limiter."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/model.rs",
+        "mistralrs-core/src/pipeline/loaders/auto_device_map.rs"
+      ]
+    },
+    {
+      "id": "port",
+      "flag": "--port",
+      "aliases": [
+        "-p"
+      ],
+      "label": "Port",
+      "group": "server",
+      "syntax": "-p, --port <PORT>",
+      "description": "HTTP server port",
+      "when_to_set": "Use the port assigned to this deployment by FCS.",
+      "values": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 65535
+      },
+      "cli_default": 1234,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default 1234."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "managed",
+        "editable": false
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/server.rs"
+      ],
+      "flexserv_policy": "Resolved by FCS/site configuration; show the effective value in the launch review."
+    },
+    {
+      "id": "host",
+      "flag": "--host",
+      "aliases": [],
+      "label": "Host",
+      "group": "server",
+      "syntax": "--host <HOST>",
+      "description": "Bind address",
+      "when_to_set": "Bind to the address required by the FCS/gateway routing plan.",
+      "values": {
+        "type": "string",
+        "description": "Bind address/hostname reachable through the configured FCS route."
+      },
+      "cli_default": "0.0.0.0",
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default 0.0.0.0."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "managed",
+        "editable": false
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/server.rs"
+      ],
+      "flexserv_policy": "Resolved by FCS/site configuration; show the effective value in the launch review."
+    },
+    {
+      "id": "no-ui",
+      "flag": "--no-ui",
+      "aliases": [],
+      "label": "Disable mistral.rs UI",
+      "group": "server",
+      "syntax": "--no-ui",
+      "description": "Disable the built-in web UI (served at /ui by default)",
+      "when_to_set": "Disable the separate upstream UI when users access the FlexServ UI.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/server.rs"
+      ],
+      "flexserv_policy": "Emit for FlexServ deployments to use the gateway UI."
+    },
+    {
+      "id": "mcp-port",
+      "flag": "--mcp-port",
+      "aliases": [],
+      "label": "Mcp port",
+      "group": "server",
+      "syntax": "--mcp-port <MCP_PORT>",
+      "description": "Also expose the loaded model as an MCP server on this port (JSON-RPC 2.0 at POST /mcp)",
+      "when_to_set": "Expose the loaded model through an additional MCP listener on a different port.",
+      "values": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 65535
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Must differ from HTTP port and be separately allocated/routed by FCS."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/server.rs"
+      ]
+    },
+    {
+      "id": "max-tool-rounds",
+      "flag": "--max-tool-rounds",
+      "aliases": [],
+      "label": "Max tool rounds",
+      "group": "server",
+      "syntax": "--max-tool-rounds <MAX_TOOL_ROUNDS>",
+      "description": "Default maximum tool-call rounds for the agentic loop. Per-request values from the HTTP API override this. Safety cap: 256 if unset",
+      "when_to_set": "Limit server-side agentic tool-call iterations; individual API requests may override the default.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use a default cap of 256 tool-call rounds, subject to per-request override."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/server.rs"
+      ]
+    },
+    {
+      "id": "tool-dispatch-url",
+      "flag": "--tool-dispatch-url",
+      "aliases": [],
+      "label": "Tool dispatch url",
+      "group": "server",
+      "syntax": "--tool-dispatch-url <TOOL_DISPATCH_URL>",
+      "description": "URL to POST tool calls to for server-side execution. For security, this is only configurable server-side (not per-request via HTTP API)",
+      "when_to_set": "Send tool calls to an explicitly configured server-side executor.",
+      "values": {
+        "type": "string",
+        "description": "HTTP(S) URL of the configured tool executor, validated by site policy."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/server.rs"
+      ]
+    },
+    {
+      "id": "disable-access-log",
+      "flag": "--disable-access-log",
+      "aliases": [],
+      "label": "Disable access log",
+      "group": "server",
+      "syntax": "--disable-access-log",
+      "description": "Disable per-request HTTP access logs",
+      "when_to_set": "Turn off per-request access logs.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/server.rs"
+      ]
+    },
+    {
+      "id": "access-log-format",
+      "flag": "--access-log-format",
+      "aliases": [],
+      "label": "Access log format",
+      "group": "server",
+      "syntax": "--access-log-format <ACCESS_LOG_FORMAT>",
+      "description": "Format for HTTP access logs. Possible values: `text`, `json`.",
+      "when_to_set": "Select structured JSON logs for log collection instead of text.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "text",
+          "json"
+        ]
+      },
+      "cli_default": "text",
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default text."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/server.rs"
+      ]
+    },
+    {
+      "id": "access-log-health",
+      "flag": "--access-log-health",
+      "aliases": [],
+      "label": "Access log health",
+      "group": "server",
+      "syntax": "--access-log-health",
+      "description": "Include health, metrics, docs, and UI requests in HTTP access logs",
+      "when_to_set": "Include routine health/metrics/docs/UI traffic when diagnosing routing or monitoring.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/server.rs"
+      ]
+    },
+    {
+      "id": "disable-request-id-header",
+      "flag": "--disable-request-id-header",
+      "aliases": [],
+      "label": "Disable request id header",
+      "group": "server",
+      "syntax": "--disable-request-id-header",
+      "description": "Disable the x-request-id response header",
+      "when_to_set": "Suppress the response request-ID header when required by integration policy.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/server.rs"
+      ]
+    },
+    {
+      "id": "disable-metrics",
+      "flag": "--disable-metrics",
+      "aliases": [],
+      "label": "Disable metrics",
+      "group": "server",
+      "syntax": "--disable-metrics",
+      "description": "Disable Prometheus HTTP metrics and the metrics recorder",
+      "when_to_set": "Disable the Prometheus endpoint/recorder when metrics are not needed.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/server.rs"
+      ]
+    },
+    {
+      "id": "max-seqs",
+      "flag": "--max-seqs",
+      "aliases": [],
+      "label": "Max seqs",
+      "group": "runtime",
+      "syntax": "--max-seqs <MAX_SEQS>",
+      "description": "Maximum concurrent sequences (defaults to 1 for run and 32 for serve)",
+      "when_to_set": "Bound concurrency and memory for the expected serving load.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use 32 concurrent sequences for serve (run defaults to 1)."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "common",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "max-num-batched-tokens",
+      "flag": "--max-num-batched-tokens",
+      "aliases": [],
+      "label": "Max num batched tokens",
+      "group": "runtime",
+      "syntax": "--max-num-batched-tokens <MAX_NUM_BATCHED_TOKENS>",
+      "description": "Maximum tokens processed in one paged-attention scheduler step",
+      "when_to_set": "Balance paged-scheduler throughput, memory and latency using a per-step token budget.",
+      "values": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "cli_default": 4096,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default 4096."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "max-prefill-chunk-tokens",
+      "flag": "--max-prefill-chunk-tokens",
+      "aliases": [],
+      "label": "Max prefill chunk tokens",
+      "group": "runtime",
+      "syntax": "--max-prefill-chunk-tokens <MAX_PREFILL_CHUNK_TOKENS>",
+      "description": "CUDA or Metal prompt-token quantum used while decode is resident and for recurrent prefill batching",
+      "when_to_set": "Tune prompt chunk size while decode is resident and for recurrent prefill batching.",
+      "values": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "cli_default": 512,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default 512."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "max-decode-steps-before-prefill",
+      "flag": "--max-decode-steps-before-prefill",
+      "aliases": [],
+      "label": "Max decode steps before prefill",
+      "group": "runtime",
+      "syntax": "--max-decode-steps-before-prefill <MAX_DECODE_STEPS_BEFORE_PREFILL>",
+      "description": "Maximum decode steps before a waiting prefill batch is admitted",
+      "when_to_set": "Bound how long waiting prompts wait behind active decoding.",
+      "values": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "cli_default": 8,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default 8."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "no-kv-cache",
+      "flag": "--no-kv-cache",
+      "aliases": [],
+      "label": "No kv cache",
+      "group": "runtime",
+      "syntax": "--no-kv-cache",
+      "description": "Disable KV cache entirely",
+      "when_to_set": "Disable KV caching for diagnostics; normally harms generation performance.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "prefix-cache-n",
+      "flag": "--prefix-cache-n",
+      "aliases": [],
+      "label": "Prefix cache n",
+      "group": "runtime",
+      "syntax": "--prefix-cache-n <PREFIX_CACHE_N>",
+      "description": "Number of prefix caches to hold (0 to disable)",
+      "when_to_set": "Tune retained prompt-prefix caches or set zero to disable them.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": 16,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default 16."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "chat-template",
+      "flag": "--chat-template",
+      "aliases": [
+        "-c"
+      ],
+      "label": "Chat template",
+      "group": "runtime",
+      "syntax": "-c, --chat-template <CHAT_TEMPLATE>",
+      "description": "Custom chat template file (.json or .jinja)",
+      "when_to_set": "Supply a missing or custom model chat template.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Use model-provided or loader fallback chat formatting; verify output for models missing a template."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "jinja-explicit",
+      "flag": "--jinja-explicit",
+      "aliases": [
+        "-j"
+      ],
+      "label": "Jinja explicit",
+      "group": "runtime",
+      "syntax": "-j, --jinja-explicit <JINJA_EXPLICIT>",
+      "description": "Explicit JINJA template override",
+      "when_to_set": "Override Jinja chat formatting explicitly for a model-specific template.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Use the model/custom chat template without an explicit Jinja override."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "matformer-config-path",
+      "flag": "--matformer-config-path",
+      "aliases": [],
+      "label": "Matformer config path",
+      "group": "runtime",
+      "syntax": "--matformer-config-path <MATFORMER_CONFIG_PATH>",
+      "description": "Path to a MatFormer config (CSV/JSON describing available slices). See model card",
+      "when_to_set": "Load a model's supported MatFormer slice configuration.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "conditional",
+        "condition": "Required when --matformer-slice-name is explicitly set."
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "matformer-slice-name",
+      "flag": "--matformer-slice-name",
+      "aliases": [],
+      "label": "Matformer slice name",
+      "group": "runtime",
+      "syntax": "--matformer-slice-name <MATFORMER_SLICE_NAME>",
+      "description": "MatFormer slice to load (must match a slice name in the config file)",
+      "when_to_set": "Choose a named MatFormer slice to change model compute/memory requirements.",
+      "values": {
+        "type": "string"
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "No explicit slice override; behavior depends on the supplied model/configuration."
+      },
+      "requires_all": [
+        "matformer-config-path"
+      ],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "mtp",
+      "flag": "--mtp",
+      "aliases": [],
+      "label": "Built-in MTP decoding",
+      "group": "runtime",
+      "syntax": "--mtp",
+      "description": "Enable MTP speculative decoding with the head built into the model checkpoint",
+      "when_to_set": "Enable speculative decoding with an MTP head contained in a compatible checkpoint.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "mtp-model"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "mtp-model",
+      "flag": "--mtp-model",
+      "aliases": [],
+      "label": "Mtp model",
+      "group": "runtime",
+      "syntax": "--mtp-model <MTP_MODEL>",
+      "description": "MTP assistant model id or path",
+      "when_to_set": "Enable speculative decoding with a compatible external MTP assistant model.",
+      "values": {
+        "type": "string"
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [
+        "mtp"
+      ],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "mtp-n-predict",
+      "flag": "--mtp-n-predict",
+      "aliases": [],
+      "label": "Mtp n predict",
+      "group": "runtime",
+      "syntax": "--mtp-n-predict <MTP_N_PREDICT>",
+      "description": "Fixed MTP draft tokens per step; omit to adapt the depth automatically",
+      "when_to_set": "Fix draft depth instead of allowing automatic adaptation when MTP is active.",
+      "values": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Adapt draft depth automatically when MTP is enabled; no effect without MTP."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Only meaningful with --mtp or --mtp-model and a supported model."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "mtp-draft-sampling",
+      "flag": "--mtp-draft-sampling",
+      "aliases": [],
+      "label": "Mtp draft sampling",
+      "group": "runtime",
+      "syntax": "--mtp-draft-sampling <MTP_DRAFT_SAMPLING>",
+      "description": "MTP draft sampling policy. Auto uses probabilistic DFlash2 drafting when supported. Possible values: `auto`, `greedy`, `probabilistic`.",
+      "when_to_set": "Choose greedy or probabilistic drafting for a compatible MTP implementation.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "greedy",
+          "probabilistic"
+        ]
+      },
+      "cli_default": "auto",
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "auto chooses probabilistic DFlash2 drafting when supported, otherwise the compatible default."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Only meaningful with --mtp or --mtp-model and a supported model."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "mcp-config",
+      "flag": "--mcp-config",
+      "aliases": [],
+      "label": "Mcp config",
+      "group": "runtime",
+      "syntax": "--mcp-config <MCP_CONFIG>",
+      "description": "Path to an MCP client configuration JSON. Also reads `MCP_CONFIG_PATH` if unset",
+      "when_to_set": "Connect server-side tools from a configured MCP client JSON file.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Read MCP_CONFIG_PATH if present; otherwise no configured MCP clients."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "agent",
+      "flag": "--agent",
+      "aliases": [
+        "--agentic"
+      ],
+      "label": "Agent",
+      "group": "agent",
+      "syntax": "--agent",
+      "description": "Build a local agent: enables web search, Python code execution, and shell execution, runs the agentic tool loop with a per-session temp workdir. Equivalent to passing `--enable-search --enable-code-execution --enable-shell` together",
+      "when_to_set": "Enable the combined web-search, Python and shell agent capabilities for a deployment that needs them.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [],
+        "condition": "Python/shell behavior requires the code-execution build feature; this flag also enables search."
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "enable-search",
+      "flag": "--enable-search",
+      "aliases": [],
+      "label": "Enable search",
+      "group": "agent",
+      "syntax": "--enable-search",
+      "description": "Enable web search (requires embedding model)",
+      "when_to_set": "Enable web-search tools and the associated embedding model.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "search-embedding-model",
+      "flag": "--search-embedding-model",
+      "aliases": [],
+      "label": "Search embedding model",
+      "group": "agent",
+      "syntax": "--search-embedding-model <SEARCH_EMBEDDING_MODEL>",
+      "description": "Search embedding model to use. Requires `--enable-search` or `--agent`. Possible values: `embedding-gemma`.",
+      "when_to_set": "Select the embedding reranker used for enabled web search.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "embedding-gemma"
+        ]
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use embedding-gemma when search is enabled."
+      },
+      "requires_all": [],
+      "requires_any": [
+        "enable-search",
+        "agent"
+      ],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "enable-code-execution",
+      "flag": "--enable-code-execution",
+      "aliases": [],
+      "label": "Enable code execution",
+      "group": "agent",
+      "syntax": "--enable-code-execution",
+      "description": "Enable Python code execution tool (WARNING: allows arbitrary code execution)",
+      "when_to_set": "Enable a server-side Python tool for model requests.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [
+          "code-execution"
+        ]
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "enable-shell",
+      "flag": "--enable-shell",
+      "aliases": [],
+      "label": "Enable shell",
+      "group": "agent",
+      "syntax": "--enable-shell",
+      "description": "Enable shell execution tool (WARNING: allows arbitrary command execution)",
+      "when_to_set": "Enable a server-side shell tool for model requests.",
+      "values": {
+        "type": "boolean",
+        "enum": [
+          false,
+          true
+        ]
+      },
+      "cli_default": false,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "disabled",
+        "best_effort": false,
+        "behavior": "Feature is not enabled unless another option explicitly enables it."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [
+          "code-execution"
+        ]
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "code-exec-python",
+      "flag": "--code-exec-python",
+      "aliases": [],
+      "label": "Code exec python",
+      "group": "agent",
+      "syntax": "--code-exec-python <CODE_EXEC_PYTHON>",
+      "description": "Python interpreter path for code execution. Requires code execution to be on (via `--enable-code-execution` or `--agent`). Defaults to `python3`",
+      "when_to_set": "Select the Python interpreter for an enabled Python execution tool.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use python3 when Python execution is enabled."
+      },
+      "requires_all": [],
+      "requires_any": [
+        "enable-code-execution",
+        "agent"
+      ],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [
+          "code-execution"
+        ]
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "code-exec-timeout",
+      "flag": "--code-exec-timeout",
+      "aliases": [],
+      "label": "Code exec timeout",
+      "group": "agent",
+      "syntax": "--code-exec-timeout <CODE_EXEC_TIMEOUT>",
+      "description": "Code execution timeout in seconds (default: 60). Requires code execution to be on",
+      "when_to_set": "Bound runtime of each Python execution.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use 60 seconds when Python execution is enabled."
+      },
+      "requires_all": [],
+      "requires_any": [
+        "enable-code-execution",
+        "agent"
+      ],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [
+          "code-execution"
+        ]
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "code-exec-workdir",
+      "flag": "--code-exec-workdir",
+      "aliases": [],
+      "label": "Code exec workdir",
+      "group": "agent",
+      "syntax": "--code-exec-workdir <CODE_EXEC_WORKDIR>",
+      "description": "Working directory for code execution. Defaults to a temp dir; use \".\" for cwd. Requires code execution to be on",
+      "when_to_set": "Set the working directory of Python execution instead of a temporary directory.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use a temporary execution directory."
+      },
+      "requires_all": [],
+      "requires_any": [
+        "enable-code-execution",
+        "agent"
+      ],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [
+          "code-execution"
+        ]
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "shell-path",
+      "flag": "--shell-path",
+      "aliases": [],
+      "label": "Shell path",
+      "group": "agent",
+      "syntax": "--shell-path <SHELL_PATH>",
+      "description": "Shell executable path. Requires shell execution to be on. Defaults to /bin/sh",
+      "when_to_set": "Select the shell executable used by the enabled shell tool.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use /bin/sh when shell execution is enabled."
+      },
+      "requires_all": [],
+      "requires_any": [
+        "enable-shell",
+        "agent"
+      ],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [
+          "code-execution"
+        ]
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "shell-timeout",
+      "flag": "--shell-timeout",
+      "aliases": [],
+      "label": "Shell timeout",
+      "group": "agent",
+      "syntax": "--shell-timeout <SHELL_TIMEOUT>",
+      "description": "Shell execution timeout in seconds (default: 600). Requires shell execution to be on",
+      "when_to_set": "Bound runtime of shell executions.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use 600 seconds when shell execution is enabled."
+      },
+      "requires_all": [],
+      "requires_any": [
+        "enable-shell",
+        "agent"
+      ],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [
+          "code-execution"
+        ]
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "shell-workdir",
+      "flag": "--shell-workdir",
+      "aliases": [],
+      "label": "Shell workdir",
+      "group": "agent",
+      "syntax": "--shell-workdir <SHELL_WORKDIR>",
+      "description": "Root directory for per-session shell working directories. Defaults to temp dirs",
+      "when_to_set": "Choose the root for per-session shell workspaces.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use temporary per-session shell working directories."
+      },
+      "requires_all": [],
+      "requires_any": [
+        "enable-shell",
+        "agent"
+      ],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [
+          "code-execution"
+        ]
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "skills-dir",
+      "flag": "--skills-dir",
+      "aliases": [],
+      "label": "Skills dir",
+      "group": "agent",
+      "syntax": "--skills-dir <SKILLS_DIR>",
+      "description": "Directory for uploaded OpenAI-compatible Skills. Defaults to the system temp directory",
+      "when_to_set": "Choose storage for uploaded Skills when shell tools are enabled.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the system temporary directory for uploaded Skills."
+      },
+      "requires_all": [],
+      "requires_any": [
+        "enable-shell",
+        "agent"
+      ],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": [
+          "code-execution"
+        ]
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "agent-permission",
+      "flag": "--agent-permission",
+      "aliases": [
+        "--code-exec-permission"
+      ],
+      "label": "Agent permission",
+      "group": "agent",
+      "syntax": "--agent-permission <PERMISSION>",
+      "description": "Agent action permission mode. Possible values: `auto`, `ask`, `deny`.",
+      "when_to_set": "Choose automatic approval, interactive approval, or denial for agent actions.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "ask",
+          "deny"
+        ]
+      },
+      "cli_default": "auto",
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default auto."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "sandbox",
+      "flag": "--sandbox",
+      "aliases": [],
+      "label": "Sandbox",
+      "group": "sandbox",
+      "syntax": "--sandbox <MODE>",
+      "description": "Sandbox mode. Possible values: `auto`, `on`, `off`.",
+      "when_to_set": "Select automatic, forced, or disabled sandboxing for execution tools.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "on",
+          "off"
+        ]
+      },
+      "cli_default": "auto",
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "auto enables sandboxing on Linux/macOS and is a no-op on Windows; MISTRALRS_SANDBOX can override auto."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/sandbox.rs"
+      ]
+    },
+    {
+      "id": "sandbox-profile",
+      "flag": "--sandbox-profile",
+      "aliases": [],
+      "label": "Sandbox profile",
+      "group": "sandbox",
+      "syntax": "--sandbox-profile <PROFILE>",
+      "description": "Sandbox policy profile. Possible values: `restricted`, `developer`.",
+      "when_to_set": "Select the execution sandbox policy profile explicitly.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "restricted",
+          "developer"
+        ]
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Developer when agent/Python/shell execution is enabled; otherwise restricted."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/sandbox.rs",
+        "mistralrs-cli/src/commands/serve.rs",
+        "mistralrs-sandbox/src/lib.rs"
+      ]
+    },
+    {
+      "id": "sb-max-memory-mb",
+      "flag": "--sb-max-memory-mb",
+      "aliases": [],
+      "label": "Sb max memory mb",
+      "group": "sandbox",
+      "syntax": "--sb-max-memory-mb <MEMORY_MB>",
+      "description": "Per-session memory cap in MiB (default: 2048)",
+      "when_to_set": "Limit per-session tool memory; this does not set model VRAM limits.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use 2048 MiB per tool session."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/sandbox.rs"
+      ]
+    },
+    {
+      "id": "sb-max-cpu-secs",
+      "flag": "--sb-max-cpu-secs",
+      "aliases": [],
+      "label": "Sb max cpu secs",
+      "group": "sandbox",
+      "syntax": "--sb-max-cpu-secs <CPU_SECS>",
+      "description": "Per-session CPU time cap in seconds (default: 600). Raised to at least enabled code/shell timeouts",
+      "when_to_set": "Limit per-session tool CPU time, also accounting for enabled tool timeouts.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use 600 CPU seconds, raised to at least enabled code/shell timeouts."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/sandbox.rs"
+      ]
+    },
+    {
+      "id": "sb-max-procs",
+      "flag": "--sb-max-procs",
+      "aliases": [],
+      "label": "Sb max procs",
+      "group": "sandbox",
+      "syntax": "--sb-max-procs <PROCS>",
+      "description": "Per-session process/thread cap (default: 64)",
+      "when_to_set": "Limit per-session tool processes/threads.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use 64 processes/threads per session."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/sandbox.rs"
+      ]
+    },
+    {
+      "id": "sandbox-network",
+      "flag": "--sandbox-network",
+      "aliases": [],
+      "label": "Sandbox network",
+      "group": "sandbox",
+      "syntax": "--sandbox-network <NETWORK>",
+      "description": "Network access permitted to the sandboxed session. Possible values: `none`, `loopback`, `full`.",
+      "when_to_set": "Override network access for execution-tool sessions.",
+      "values": {
+        "type": "string",
+        "enum": [
+          "none",
+          "loopback",
+          "full"
+        ]
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "inferred",
+        "best_effort": true,
+        "behavior": "Inherit the profile: developer allows full network, restricted allows loopback."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/serve.md",
+        "mistralrs-cli/src/args/sandbox.rs",
+        "mistralrs-cli/src/commands/serve.rs",
+        "mistralrs-sandbox/src/lib.rs"
+      ]
+    },
+    {
+      "id": "seed",
+      "flag": "--seed",
+      "aliases": [],
+      "label": "Seed",
+      "group": "global",
+      "syntax": "--seed <SEED>",
+      "description": "Random seed for reproducibility",
+      "when_to_set": "Set a random seed for reproducible sampling where supported; this does not guarantee cross-hardware determinism.",
+      "values": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "No fixed seed supplied."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/index.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "log",
+      "flag": "--log",
+      "aliases": [
+        "-l"
+      ],
+      "label": "Log",
+      "group": "global",
+      "syntax": "-l, --log <LOG>",
+      "description": "Log all requests and responses to this file",
+      "when_to_set": "Record full requests/responses to a file when that logging is intended.",
+      "values": {
+        "type": "path",
+        "description": "Path accessible on the allocated compute node; not a gateway-local path."
+      },
+      "cli_default": null,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "No full request/response log file; ordinary diagnostic/access logs remain separate."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/index.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "token-source",
+      "flag": "--token-source",
+      "aliases": [],
+      "label": "Token source",
+      "group": "global",
+      "syntax": "--token-source <TOKEN_SOURCE>",
+      "description": "Token source for Hugging Face authentication. Formats: `literal:<token>`, `env:<var>`, `path:<file>`, `cache`, `none`",
+      "when_to_set": "Choose the credential source needed to access gated/private Hugging Face assets.",
+      "values": {
+        "type": "string",
+        "description": "cache, none, env:VARIABLE, path:FILE, or literal:TOKEN. FlexServ uses env/path references and must redact secrets."
+      },
+      "cli_default": "cache",
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the cached Hugging Face credential; provide an env/path source when the job needs another credential."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true,
+        "sensitive": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/index.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    },
+    {
+      "id": "verbose",
+      "flag": "--verbose",
+      "aliases": [
+        "-v"
+      ],
+      "label": "Verbose",
+      "group": "global",
+      "syntax": "-v, --verbose",
+      "description": "Increase logging verbosity. Use -v for debug and -vv for trace-level internals",
+      "when_to_set": "Increase diagnostics to debug or trace for troubleshooting.",
+      "values": {
+        "type": "count",
+        "minimum": 0,
+        "maximum": 255,
+        "description": "Repeat -v/--verbose; 1 enables debug, 2 enables trace. No value argument."
+      },
+      "cli_default": 0,
+      "required": {
+        "upstream": "optional",
+        "condition": null
+      },
+      "omission": {
+        "kind": "fixed",
+        "best_effort": false,
+        "behavior": "Use the fixed upstream default 0."
+      },
+      "requires_all": [],
+      "requires_any": [],
+      "conflicts": [],
+      "applicability": {
+        "model": "See description and conditions; flag parsing does not guarantee loader support.",
+        "build_features": []
+      },
+      "ui": {
+        "visibility": "advanced",
+        "editable": true
+      },
+      "sources": [
+        "docs/src/content/docs/reference/cli/index.md",
+        "mistralrs-cli/src/args/mod.rs"
+      ]
+    }
+  ],
+  "informational_flags": [
+    {
+      "flag": "--help",
+      "aliases": [
+        "-h"
+      ],
+      "effect": "Print help and exit; never include in a deployment launch."
+    },
+    {
+      "flag": "--version",
+      "aliases": [
+        "-V"
+      ],
+      "effect": "Print version and exit; use as a separate preflight command."
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Status remains recoverable independently of the bounded workflow progress ring.",
+  "properties": {
+    "deployment": true,
+    "digest": {
+      "type": "string"
+    },
+    "error": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "output": true,
+    "pause_requested": {
+      "type": "boolean"
+    },
+    "requires_expert_review": {
+      "type": "boolean"
+    },
+    "revision": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stage": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "vllm_run_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "workflow_id",
+    "vllm_run_id",
+    "state",
+    "stage",
+    "revision",
+    "digest",
+    "output",
+    "pause_requested",
+    "requires_expert_review"
+  ],
+  "title": "V2Status",
+  "type": "object"
+}

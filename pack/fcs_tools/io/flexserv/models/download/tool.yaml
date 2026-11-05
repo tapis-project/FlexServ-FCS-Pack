@@ -1,0 +1,74 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.models.download
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: Prepare and verify one immutable shared checkpoint across the frozen
+      FCS cohort.
+    parameters_schema: schemas/input.json
+    output_schema: schemas/output.json
+  policy:
+    derive: dependencies
+    resources:
+    - shared_hf
+  execution:
+    mode: background
+    timeout_seconds: 7200
+    max_calls: 64
+  distribution:
+    mode: collective
+    default_selector:
+      role: worker
+  steps:
+  - id: runtime
+    kind: call
+    tool:
+      name: local.hf.runtime.inspect
+      version: 1.0.0
+    input:
+      profile: shared_hf
+      input: {}
+  - id: model
+    kind: call
+    tool:
+      name: local.model.resolve
+      version: 1.0.0
+    input:
+      profile: shared_hf
+      input: '{{params}}'
+  - id: preflight
+    kind: call
+    tool:
+      name: local.hf.collective.preflight
+      version: 1.0.0
+    input:
+      profile: shared_hf
+      input:
+        model: '{{steps.model}}'
+        runtime: '{{steps.runtime}}'
+  - id: transfer
+    kind: call
+    tool:
+      name: local.hf.collective.transfer
+      version: 1.0.0
+    input:
+      profile: shared_hf
+      input:
+        collective:
+          collective_ref: '{{steps.preflight.collective_ref}}'
+  - id: checkpoint
+    kind: call
+    tool:
+      name: local.hf.collective.finalize
+      version: 1.0.0
+    input:
+      profile: shared_hf
+      input:
+        collective:
+          collective_ref: '{{steps.preflight.collective_ref}}'
+  result:
+    checkpoint: '{{steps.checkpoint}}'
+    workflow_id: '{{toolctx.root_call_id}}'

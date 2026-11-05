@@ -1,0 +1,27 @@
+schema_version: flexserv.tool.v1alpha2
+kind: Tool
+metadata:
+  name: io.flexserv.vllm.advanced.inspect
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: Inspect approved node and model facts without allocating devices
+      or service ports.
+    parameters_schema: schemas/input.json
+    output_schema: schemas/output.json
+  policy:
+    derive: dependencies
+    resources:
+    - local_vllm
+  steps:
+  - id: run
+    kind: call
+    tool:
+      name: local.vllm.advanced.inspect
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input: '{{params}}'
+      process_group_version: 1
+  result: '{{steps.run}}'

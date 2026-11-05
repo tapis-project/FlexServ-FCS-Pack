@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Barrier acknowledgments are idempotent for an already released receipt.",
+  "properties": {
+    "digest": {
+      "type": "string"
+    },
+    "released": {
+      "type": "boolean"
+    },
+    "stage": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "released",
+    "stage",
+    "digest"
+  ],
+  "title": "ReleaseOutput",
+  "type": "object"
+}

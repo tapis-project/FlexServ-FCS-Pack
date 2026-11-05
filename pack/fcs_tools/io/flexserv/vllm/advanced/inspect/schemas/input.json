@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "description": "Optional canonical model identity; filesystem roots remain protected host facts.",
+  "properties": {
+    "model_id": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "type": "object",
+  "$defs": {
+    "InspectInput": {
+      "additionalProperties": false,
+      "description": "Optional canonical model identity; filesystem roots remain protected host facts.",
+      "properties": {
+        "model_id": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    }
+  }
+}

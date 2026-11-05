@@ -1,0 +1,42 @@
+{
+  "additionalProperties": false,
+  "description": "Owner-checked service controls may additionally pin a running incarnation.",
+  "properties": {
+    "deployment_id": {
+      "pattern": "^[0-9a-fA-F-]{36}$",
+      "type": "string"
+    },
+    "generation": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "deployment_id"
+  ],
+  "type": "object",
+  "$defs": {
+    "DeploymentControlInput": {
+      "additionalProperties": false,
+      "description": "Owner-checked service controls may additionally pin a running incarnation.",
+      "properties": {
+        "deployment_id": {
+          "pattern": "^[0-9a-fA-F-]{36}$",
+          "type": "string"
+        },
+        "generation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "deployment_id"
+      ],
+      "type": "object"
+    }
+  }
+}

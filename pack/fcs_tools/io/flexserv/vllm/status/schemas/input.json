@@ -1,0 +1,28 @@
+{
+  "additionalProperties": false,
+  "description": "An attached control selects only the authenticated owner's workflow.",
+  "properties": {
+    "workflow_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "workflow_id"
+  ],
+  "type": "object",
+  "$defs": {
+    "StatusInput": {
+      "additionalProperties": false,
+      "description": "An attached control selects only the authenticated owner's workflow.",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "workflow_id"
+      ],
+      "type": "object"
+    }
+  }
+}

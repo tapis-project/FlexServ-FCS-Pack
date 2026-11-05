@@ -176,6 +176,12 @@
         },
         "root": {
           "type": "string"
+        },
+        "served_model_name": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [

@@ -5,6 +5,10 @@ io.flexserv.deployments.result
 io.flexserv.deployments.status
 io.flexserv.deployments.stop
 io.flexserv.deployments.vllm
+io.flexserv.models.cancel
+io.flexserv.models.download
+io.flexserv.models.result
+io.flexserv.models.status
 io.flexserv.paths.resolve_relative
 io.flexserv.ssh.authorized_keys.install
 io.flexserv.ssh.keypair.generate
@@ -12,6 +16,16 @@ io.flexserv.ssh.keypair.generate_cli
 io.flexserv.ssh.keypair.import
 io.flexserv.ssh.keypair.select
 io.flexserv.ssh.target.resolve
+io.flexserv.vllm.cancel
+io.flexserv.vllm.continue
+io.flexserv.vllm.deploy
+io.flexserv.vllm.execute
+io.flexserv.vllm.inspect
+io.flexserv.vllm.logs
+io.flexserv.vllm.result
+io.flexserv.vllm.status
+io.flexserv.vllm.stop
+io.flexserv.vllm.workflow_status
 io.tapis.access.check
 io.tapis.access.credentials.scan_to_secret
 io.tapis.apps.create

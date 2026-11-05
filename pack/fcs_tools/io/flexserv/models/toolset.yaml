@@ -1,0 +1,20 @@
+schema_version: flexserv.toolset.v1alpha2
+kind: ToolSet
+metadata:
+  name: io.flexserv.models
+  version: 1.0.0
+spec:
+  description: Governed shared-storage checkpoint preparation
+  tools:
+  - name: io.flexserv.models.download
+    version: 1.0.0
+    path: download
+  - name: io.flexserv.models.status
+    version: 1.0.0
+    path: status
+  - name: io.flexserv.models.result
+    version: 1.0.0
+    path: result
+  - name: io.flexserv.models.cancel
+    version: 1.0.0
+    path: cancel

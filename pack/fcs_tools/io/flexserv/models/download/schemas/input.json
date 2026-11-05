@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Model location is independent of deployment hardware, engine arguments and virtualenv setup.",
+  "properties": {
+    "model_id": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "type": "string"
+    },
+    "provider_model_id": {
+      "maxLength": 512,
+      "minLength": 1,
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "model_id"
+  ],
+  "title": "ModelResolveInput",
+  "type": "object"
+}

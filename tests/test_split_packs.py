@@ -20,6 +20,8 @@ class SplitPacks(unittest.TestCase):
     def test_standalone_archives_cover_original_catalog(self):
         with tempfile.TemporaryDirectory() as directory:
             outputs = split.build(ROOT / 'pack', Path(directory), 'a' * 40)
+            self.assertEqual({archive.name for archive in outputs}, {
+                'tapis-workflow-pack.zip', 'vllm-pack.zip', 'hf-collective-pack.zip'})
             payloads = []
             toolsets = []
             tool_names = []
@@ -39,6 +41,7 @@ class SplitPacks(unittest.TestCase):
                 toolsets.append(namespaces)
                 self.assertEqual('io.tapis.workflows' in namespaces, archive.stem == 'tapis-workflow-pack')
                 self.assertEqual('io.flexserv.deployments' in namespaces, archive.stem == 'vllm-pack')
+                self.assertEqual('io.flexserv.models' in namespaces, archive.stem == 'hf-collective-pack')
                 self.assertNotIn('io.flexserv.content', namespaces)
                 self.assertEqual('io.tapis.access.credentials' in namespaces, archive.stem == 'tapis-workflow-pack')
                 self.assertEqual('fcs_tools/io/tapis/access/credentials/scan_to_secret/tool.yaml' in data,
@@ -51,14 +54,32 @@ class SplitPacks(unittest.TestCase):
                         names.append(match.group(1))
                 self.assertEqual(len(names), len(set(names)), archive.stem)
                 tool_names.append(set(names))
-            self.assertFalse(toolsets[0] & toolsets[1], 'Standalone Packs must have distinct toolsets')
-            self.assertFalse(tool_names[0] & tool_names[1], 'Standalone Packs must have distinct tools')
+            for index, first in enumerate(outputs):
+                for other in range(index + 1, len(outputs)):
+                    self.assertFalse(toolsets[index] & toolsets[other],
+                                     f'{first.name} and {outputs[other].name} share toolsets')
+                    self.assertFalse(tool_names[index] & tool_names[other],
+                                     f'{first.name} and {outputs[other].name} share tools')
             scanner = payloads[0]['fcs_tools/io/tapis/access/credentials/scan_to_secret/tool.yaml'].decode()
             self.assertIn('name: io.tapis.access.credentials.scan_to_secret', scanner)
             self.assertIn('tool: content.scan_to_secret', scanner)
             capture = payloads[0]['fcs_tools/io/tapis/jobs/outputs/capture_once/tool.yaml'].decode()
             self.assertIn('name: io.tapis.access.credentials.scan_to_secret', capture)
             self.assertNotIn('io.flexserv.content.scan_to_secret', capture)
+            hf = payloads[next(i for i, archive in enumerate(outputs) if archive.stem == 'hf-collective-pack')]
+            download = hf['fcs_tools/io/flexserv/models/download/tool.yaml'].decode()
+            self.assertIn('name: io.flexserv.models.download', download)
+            self.assertIn('visibility: true', download)
+            self.assertIn('mode: collective', download)
+            self.assertIn('mode: background', download)
+            for name in ('local.hf.runtime.inspect', 'local.model.resolve',
+                         'local.hf.collective.preflight', 'local.hf.collective.transfer',
+                         'local.hf.collective.finalize'):
+                self.assertIn('name: ' + name, download)
+            for role in ('cancel', 'result', 'status'):
+                self.assertIn(f'fcs_tools/io/flexserv/models/{role}/tool.yaml', hf)
+            for schema in ('input', 'output'):
+                self.assertIn(f'fcs_tools/io/flexserv/models/download/schemas/{schema}.json', hf)
             merged = {}
             for data in payloads:
                 for name, content in data.items():
@@ -72,6 +93,7 @@ class SplitPacks(unittest.TestCase):
             self.assertEqual(merged, original)
             source = json.loads((Path(directory) / 'pack-source.json').read_text())
             self.assertEqual(source['commit'], 'a' * 40)
+            self.assertEqual(set(source['packs']), {archive.stem for archive in outputs})
 
     def test_stale_source_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:

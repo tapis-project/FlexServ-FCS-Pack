@@ -1,0 +1,198 @@
+{
+  "$defs": {
+    "CheckpointKind": {
+      "description": "A singleton kind prevents references from silently crossing resource domains.",
+      "enum": [
+        "checkpoint"
+      ],
+      "type": "string"
+    },
+    "CheckpointMember": {
+      "additionalProperties": false,
+      "description": "Exact member coordinates; dense participant index is distinct from physical bootstrap rank.",
+      "properties": {
+        "epoch": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "instance_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "participant_index": {
+          "format": "uint32",
+          "maximum": 127,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rank": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "instance_id",
+        "epoch",
+        "rank",
+        "participant_index"
+      ],
+      "type": "object"
+    },
+    "CheckpointReady": {
+      "additionalProperties": false,
+      "description": "Consistent final verification claim; only a trusted runtime may turn observations into authority.",
+      "properties": {
+        "commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "destination_key": {
+          "$ref": "#/$defs/ContentDigest"
+        },
+        "manifest_digest": {
+          "$ref": "#/$defs/ContentDigest"
+        },
+        "membership_digest": {
+          "$ref": "#/$defs/ContentDigest"
+        },
+        "operation_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "owner": {
+          "$ref": "#/$defs/PrincipalName"
+        },
+        "plan_digest": {
+          "$ref": "#/$defs/ContentDigest"
+        },
+        "schema_version": {
+          "format": "uint32",
+          "maximum": 1,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "verified_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "verified_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "verified_files": {
+          "format": "uint32",
+          "maximum": 512,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "verifier": {
+          "$ref": "#/$defs/CheckpointMember"
+        }
+      },
+      "required": [
+        "schema_version",
+        "plan_digest",
+        "operation_id",
+        "owner",
+        "membership_digest",
+        "manifest_digest",
+        "destination_key",
+        "commit",
+        "verifier",
+        "verified_files",
+        "verified_bytes",
+        "verified_at"
+      ],
+      "type": "object"
+    },
+    "CheckpointRef": {
+      "additionalProperties": false,
+      "description": "Typed opaque ledger reference; caller projections never grant ownership.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/CheckpointKind"
+        },
+        "resource_ref": {
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource_ref",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "CollectiveFinalizeOutput": {
+      "additionalProperties": false,
+      "description": "Only the trusted final verification path can issue the opaque load capability returned here.",
+      "properties": {
+        "checkpoint_path": {
+          "type": "string"
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "ready": {
+          "$ref": "#/$defs/CheckpointReady"
+        },
+        "verified_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "verified_ref": {
+          "$ref": "#/$defs/CheckpointRef"
+        }
+      },
+      "required": [
+        "complete",
+        "verified_ref",
+        "checkpoint_path",
+        "verified_bytes",
+        "ready"
+      ],
+      "type": "object"
+    },
+    "ContentDigest": {
+      "maxLength": 71,
+      "minLength": 71,
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "Identifier": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "type": "string"
+    },
+    "PrincipalName": {
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "type": "string"
+    },
+    "Timestamp": {
+      "format": "date-time",
+      "maxLength": 35,
+      "minLength": 20,
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,9})?(?:Z|[+-][0-9]{2}:[0-9]{2})$",
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A member's workflow result separates verified checkpoint authority from observation identity.",
+  "properties": {
+    "checkpoint": {
+      "$ref": "#/$defs/CollectiveFinalizeOutput"
+    },
+    "workflow_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "checkpoint",
+    "workflow_id"
+  ],
+  "title": "CollectiveWorkflowResult",
+  "type": "object"
+}
