@@ -1,4 +1,4 @@
-schema_version: flexserv.tool.v1alpha2
+schema_version: flexserv.tool.v1alpha3
 kind: Tool
 metadata:
   name: io.flexserv.ssh.target.resolve
@@ -35,6 +35,8 @@ spec:
       - '{{host.SCRATCH}}/'
   steps:
   - id: execute
-    kind: native
-    tool: ssh.target.resolve
+    kind: call
+    tool:
+      name: ssh.target.resolve
+      version: 1.0.0
     input: '{{params}}'

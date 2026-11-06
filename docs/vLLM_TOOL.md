@@ -15,7 +15,7 @@ This guide assumes the site administrator has already installed uv, uv-managed C
 Provision an exact vLLM package version on the target compute partition. From the root of `FlexServ-Site-Configs`, with `FLEXSERV_SHARED_RESOURCE_DIR`, `FLEXSERV_SYSTEM_ID`, and `SLURM_JOB_PARTITION` set, run:
 
 ```sh
-sh scripts/site_init/backend_install.sh vllm 0.18.0
+sh scripts/site_init/backend_install.sh vllm 0.33.0
 ```
 
 FCS uses `virt_envs/vllm-<system>-<partition>/bin/vllm` under the shared root. For accelerator-specific wheel selection and forced reinstallation, see the [backend installation spec](../../FlexServ-Site-Configs/spec/backend_install_spec.md#how-vllm-is-installed).

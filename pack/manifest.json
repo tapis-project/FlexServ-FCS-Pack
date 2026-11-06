@@ -1,5 +1,5 @@
 {
-  "schema_version": "flexserv.fcs-pack.v1alpha2",
+  "schema_version": "flexserv.fcs-pack.v1alpha3",
   "name": "flexserv-capability-pack",
   "version": "1.1.0",
   "target": "any",
@@ -103,6 +103,11 @@
       "name": "io.flexserv.vllm",
       "version": "1.0.0",
       "path": "fcs_tools/io/flexserv/vllm"
+    },
+    {
+      "name": "edu.utexas.tacc.flexserv.deployment.vllm",
+      "version": "1.0.0",
+      "path": "fcs_tools/edu/utexas/tacc/flexserv/deployment/vllm"
     }
   ]
 }

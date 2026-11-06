@@ -1,4 +1,4 @@
-schema_version: flexserv.tool.v1alpha2
+schema_version: flexserv.tool.v1alpha3
 kind: Tool
 metadata:
   name: io.flexserv.deployments.stop

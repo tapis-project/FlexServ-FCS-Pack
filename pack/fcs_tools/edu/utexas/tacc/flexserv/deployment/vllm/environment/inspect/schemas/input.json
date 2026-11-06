@@ -1,0 +1,28 @@
+{
+  "additionalProperties": false,
+  "description": "Read-only inspection optionally checks the selected checkpoint metadata.",
+  "properties": {
+    "model_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "type": "object",
+  "$defs": {
+    "InspectInput": {
+      "additionalProperties": false,
+      "description": "Read-only inspection optionally checks the selected checkpoint metadata.",
+      "properties": {
+        "model_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    }
+  }
+}

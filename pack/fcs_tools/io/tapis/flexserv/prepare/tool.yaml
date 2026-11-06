@@ -1,4 +1,4 @@
-schema_version: flexserv.tool.v1alpha2
+schema_version: flexserv.tool.v1alpha3
 kind: Tool
 metadata:
   name: io.tapis.flexserv.prepare
@@ -46,13 +46,17 @@ spec:
       - '{{host.SCRATCH}}/'
   steps:
   - id: app
-    kind: native
-    tool: pack.read_json
+    kind: call
+    tool:
+      name: pack.read_json
+      version: 1.0.0
     input:
       path: templates/flexserv_app.json
   - id: job
-    kind: native
-    tool: pack.read_json
+    kind: call
+    tool:
+      name: pack.read_json
+      version: 1.0.0
     input:
       path: templates/flexserv_job.json
   - id: prepare

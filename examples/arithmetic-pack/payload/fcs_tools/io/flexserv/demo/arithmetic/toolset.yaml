@@ -1,0 +1,21 @@
+schema_version: flexserv.toolset.v1alpha3
+kind: ToolSet
+metadata:
+  name: io.flexserv.demo.arithmetic
+  version: 1.0.0
+  visibility: true
+spec:
+  description: Five-executor arithmetic demonstration
+  tools:
+  - name: io.flexserv.demo.arithmetic.add
+    version: 1.0.0
+    path: add
+  - name: io.flexserv.demo.arithmetic.subtract
+    version: 1.0.0
+    path: subtract
+  - name: io.flexserv.demo.arithmetic.divide
+    version: 1.0.0
+    path: divide
+  - name: io.flexserv.demo.arithmetic.square
+    version: 1.0.0
+    path: square

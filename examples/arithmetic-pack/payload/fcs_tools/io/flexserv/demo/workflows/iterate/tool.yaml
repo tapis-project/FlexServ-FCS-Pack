@@ -1,0 +1,60 @@
+schema_version: flexserv.tool.v1alpha3
+kind: Tool
+metadata:
+  name: io.flexserv.demo.workflows.iterate
+  version: 1.0.0
+  visibility: true
+  labels:
+    demo: arithmetic
+    operation: iterate
+spec:
+  contract:
+    description: Feed expression results through a bounded while loop
+    parameters_schema:
+      type: object
+      properties:
+        a: &id001
+          type: number
+          minimum: -1000000000000.0
+          maximum: 1000000000000.0
+        b: *id001
+        c: *id001
+        d: *id001
+        e: *id001
+        iterations:
+          type: integer
+          minimum: 0
+          maximum: 8
+      required:
+      - a
+      - b
+      - c
+      - d
+      - e
+      - iterations
+      additionalProperties: false
+    output_schema:
+      type: object
+  skills:
+  - skill://io.flexserv.demo.workflows.iterate/1.0.0/iterate/SKILL.md
+  policy:
+    programs:
+    - bc
+    filesystem:
+      read:
+      - /
+      write: []
+  steps:
+  - id: execute
+    kind: bashkit
+    script: scripts/run.sh
+    input: '{{params}}'
+    uses:
+      tool_expression:
+        name: io.flexserv.demo.workflows.expression
+        version: 1.0.0
+  result: '{{steps.execute}}'
+  execution:
+    mode: background
+    timeout_seconds: 90
+    max_calls: 256

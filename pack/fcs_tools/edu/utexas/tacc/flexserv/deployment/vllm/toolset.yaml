@@ -1,0 +1,30 @@
+schema_version: flexserv.toolset.v1alpha3
+kind: ToolSet
+metadata:
+  name: edu.utexas.tacc.flexserv.deployment.vllm
+  version: 1.0.0
+  visibility: true
+spec:
+  description: Evidence-based reviewed vLLM deployment
+  tools:
+  - name: edu.utexas.tacc.flexserv.deployment.vllm.environment.inspect
+    version: 1.0.0
+    path: environment/inspect
+  - name: edu.utexas.tacc.flexserv.deployment.vllm.recipe.resolve
+    version: 1.0.0
+    path: recipe/resolve
+  - name: edu.utexas.tacc.flexserv.deployment.vllm.prepare
+    version: 1.0.0
+    path: prepare
+  - name: edu.utexas.tacc.flexserv.deployment.vllm.plan
+    version: 1.0.0
+    path: plan
+  - name: edu.utexas.tacc.flexserv.deployment.vllm.execute
+    version: 1.0.0
+    path: execute
+  - name: edu.utexas.tacc.flexserv.deployment.vllm.monitor
+    version: 1.0.0
+    path: monitor
+  - name: edu.utexas.tacc.flexserv.deployment.vllm.cancel
+    version: 1.0.0
+    path: cancel

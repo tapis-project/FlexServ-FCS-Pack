@@ -1,4 +1,4 @@
-schema_version: flexserv.tool.v1alpha2
+schema_version: flexserv.tool.v1alpha3
 kind: Tool
 metadata:
   name: io.flexserv.paths.resolve_relative
@@ -40,6 +40,8 @@ spec:
       - '{{host.SCRATCH}}/'
   steps:
   - id: execute
-    kind: native
-    tool: path.resolve_relative
+    kind: call
+    tool:
+      name: path.resolve_relative
+      version: 1.0.0
     input: '{{params}}'

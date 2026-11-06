@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "A completed preparation reference has no downloader-invocation lease authority.",
+  "properties": {
+    "checkpoint": true,
+    "model_id": {
+      "type": "string"
+    },
+    "preparation_ref": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "preparation_ref",
+    "model_id",
+    "checkpoint"
+  ],
+  "title": "Preparation",
+  "type": "object"
+}

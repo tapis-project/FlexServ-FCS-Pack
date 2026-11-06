@@ -1,0 +1,44 @@
+{
+  "additionalProperties": false,
+  "description": "Recipe IDs resolve solely inside the host-selected catalog.",
+  "properties": {
+    "recipe_id": {
+      "type": "string"
+    },
+    "snapshot_ref": {
+      "type": "string"
+    },
+    "variant": {
+      "default": "default",
+      "type": "string"
+    }
+  },
+  "required": [
+    "snapshot_ref",
+    "recipe_id"
+  ],
+  "type": "object",
+  "$defs": {
+    "RecipeInput": {
+      "additionalProperties": false,
+      "description": "Recipe IDs resolve solely inside the host-selected catalog.",
+      "properties": {
+        "recipe_id": {
+          "type": "string"
+        },
+        "snapshot_ref": {
+          "type": "string"
+        },
+        "variant": {
+          "default": "default",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_ref",
+        "recipe_id"
+      ],
+      "type": "object"
+    }
+  }
+}

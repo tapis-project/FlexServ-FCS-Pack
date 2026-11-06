@@ -1,0 +1,25 @@
+schema_version: flexserv.tool.v1alpha3
+kind: Tool
+metadata:
+  name: edu.utexas.tacc.flexserv.deployment.vllm.execute
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: Execute only the owner-bound revision and digest that was reviewed.
+    parameters_schema: schemas/input.json
+    output_schema: schemas/output.json
+  policy:
+    derive: dependencies
+    resources:
+    - local_vllm
+  steps:
+  - id: operation
+    kind: call
+    tool:
+      name: edu.utexas.tacc.flexserv.deployment.execution.start
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input: '{{params}}'
+  result: '{{steps.operation}}'

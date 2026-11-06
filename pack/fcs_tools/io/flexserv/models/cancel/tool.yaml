@@ -1,4 +1,4 @@
-schema_version: flexserv.tool.v1alpha2
+schema_version: flexserv.tool.v1alpha3
 kind: Tool
 metadata:
   name: io.flexserv.models.cancel
@@ -12,6 +12,8 @@ spec:
   policy: {}
   steps:
   - id: control
-    kind: native
-    tool: workflow.cancel
+    kind: call
+    tool:
+      name: workflow.cancel
+      version: 1.0.0
     input: '{{params}}'

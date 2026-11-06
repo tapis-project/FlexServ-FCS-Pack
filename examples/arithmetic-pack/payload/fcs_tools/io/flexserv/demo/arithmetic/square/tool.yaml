@@ -1,0 +1,39 @@
+schema_version: flexserv.tool.v1alpha3
+kind: Tool
+metadata:
+  name: io.flexserv.demo.arithmetic.square
+  version: 1.0.0
+  visibility: true
+  labels:
+    demo: arithmetic
+    operation: square
+spec:
+  contract:
+    description: Square through the outbound REST adapter
+    parameters_schema: &id001
+      type: object
+      properties:
+        value:
+          type: number
+          minimum: -1000000000000.0
+          maximum: 1000000000000.0
+      required:
+      - value
+      additionalProperties: false
+    output_schema: *id001
+  skills:
+  - skill://io.flexserv.demo.arithmetic.square/1.0.0/square/SKILL.md
+  policy: {}
+  steps:
+  - id: execute
+    kind: rest
+    caller: http
+    request:
+      connection: arithmetic-demo-rest
+      method: POST
+      body:
+        type: json
+        value: '{{params}}'
+      response: json
+      timeout_seconds: 10
+  result: '{{steps.execute.body}}'

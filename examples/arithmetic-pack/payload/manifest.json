@@ -1,0 +1,18 @@
+{
+  "schema_version": "flexserv.fcs-pack.v1alpha3",
+  "name": "flexserv-arithmetic-demo",
+  "version": "1.0.0",
+  "target": "any",
+  "toolsets": [
+    {
+      "name": "io.flexserv.demo.arithmetic",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/flexserv/demo/arithmetic"
+    },
+    {
+      "name": "io.flexserv.demo.workflows",
+      "version": "1.0.0",
+      "path": "fcs_tools/io/flexserv/demo/workflows"
+    }
+  ]
+}

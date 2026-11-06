@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 import zipfile
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
@@ -62,7 +63,8 @@ class SplitPacks(unittest.TestCase):
                                      f'{first.name} and {outputs[other].name} share tools')
             scanner = payloads[0]['fcs_tools/io/tapis/access/credentials/scan_to_secret/tool.yaml'].decode()
             self.assertIn('name: io.tapis.access.credentials.scan_to_secret', scanner)
-            self.assertIn('tool: content.scan_to_secret', scanner)
+            self.assertEqual(yaml.safe_load(scanner)['spec']['steps'][0]['tool'],
+                             {'name': 'content.scan_to_secret', 'version': '1.0.0'})
             capture = payloads[0]['fcs_tools/io/tapis/jobs/outputs/capture_once/tool.yaml'].decode()
             self.assertIn('name: io.tapis.access.credentials.scan_to_secret', capture)
             self.assertNotIn('io.flexserv.content.scan_to_secret', capture)
@@ -99,7 +101,7 @@ class SplitPacks(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / 'pack'
             root.mkdir()
-            (root / 'manifest.json').write_text('{"schema_version":"flexserv.fcs-pack.v1alpha2"}')
+            (root / 'manifest.json').write_text('{"schema_version":"flexserv.fcs-pack.v1alpha3"}')
             (root / 'checksums.sha256').write_text('')
             with self.assertRaisesRegex(ValueError, 'stale'):
                 split.build(root, Path(directory) / 'out', 'a' * 40)

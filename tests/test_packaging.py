@@ -40,6 +40,18 @@ class Packaging(unittest.TestCase):
                 self.assertIn('manifest.json', names)
                 self.assertIn('checksums.sha256', names)
                 manifest = json.loads(archive.read('manifest.json'))
+                self.assertEqual(manifest['schema_version'], 'flexserv.fcs-pack.v1alpha3')
+                for name in names:
+                    if name.endswith(('/tool.yaml', '/toolset.yaml')):
+                        document = yaml.safe_load(archive.read(name))
+                        kind = 'toolset' if name.endswith('/toolset.yaml') else 'tool'
+                        self.assertEqual(document['schema_version'], f'flexserv.{kind}.v1alpha3')
+                        if kind == 'tool':
+                            for step in document['spec'].get('steps', []):
+                                self.assertNotEqual(step['kind'], 'native', name)
+                                if step['kind'] == 'call' and 'tool' in step:
+                                    self.assertEqual(set(step['tool']), {'name', 'version'}, name)
+                                    self.assertTrue(step['tool']['version'], name)
                 namespaces = {t['name'] for t in manifest['toolsets']}
                 self.assertIn('io.flexserv.deployments', namespaces)
                 self.assertIn('io.flexserv.models', namespaces)
@@ -50,7 +62,7 @@ class Packaging(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / 'pack'
             root.mkdir()
-            (root / 'manifest.json').write_text('{"schema_version":"flexserv.fcs-pack.v1alpha2"}')
+            (root / 'manifest.json').write_text('{"schema_version":"flexserv.fcs-pack.v1alpha3"}')
             (root / 'checksums.sha256').write_text(packager.checksums(root))
             (root / 'script.sh').write_text('changed')
             with self.assertRaisesRegex(ValueError, 'stale'):
@@ -62,6 +74,16 @@ class Packaging(unittest.TestCase):
             (root / 'link').symlink_to('/etc/passwd')
             with self.assertRaisesRegex(ValueError, 'links'):
                 packager.checksums(root)
+
+    def test_superseded_pack_schema_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'pack'
+            root.mkdir()
+            (root / 'manifest.json').write_text(json.dumps({
+                'schema_version': 'flexserv.fcs-pack.v1alpha2'}))
+            (root / 'checksums.sha256').write_text(packager.checksums(root))
+            with self.assertRaisesRegex(ValueError, 'v1alpha3'):
+                packager.package(root, Path(directory) / 'out.zip')
 
 
 if __name__ == '__main__':

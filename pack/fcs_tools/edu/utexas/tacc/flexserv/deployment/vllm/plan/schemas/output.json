@@ -1,0 +1,246 @@
+{
+  "$defs": {
+    "CandidatePlan": {
+      "additionalProperties": false,
+      "description": "A deterministic adapter output, sealed only after trusted inspection and reservation.",
+      "properties": {
+        "allocation_epoch": {
+          "type": "string"
+        },
+        "checkpoint": true,
+        "decisions": {
+          "default": [],
+          "items": true,
+          "type": "array"
+        },
+        "endpoints": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Endpoint"
+          },
+          "type": "object"
+        },
+        "engine": {
+          "type": "string"
+        },
+        "engine_version": {
+          "type": "string"
+        },
+        "processes": {
+          "items": {
+            "$ref": "#/$defs/PlannedProcess"
+          },
+          "type": "array"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "readiness": {
+          "$ref": "#/$defs/HaltCondition"
+        },
+        "snapshot_digest": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "engine",
+        "engine_version",
+        "profile",
+        "allocation_epoch",
+        "snapshot_digest",
+        "checkpoint",
+        "processes",
+        "endpoints",
+        "readiness"
+      ],
+      "type": "object"
+    },
+    "Endpoint": {
+      "additionalProperties": false,
+      "description": "A named listener or route on a listener, distinct from an advertised public address.",
+      "properties": {
+        "advertised_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bind_ip": {
+          "format": "ip",
+          "type": "string"
+        },
+        "port": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "process_id": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string"
+        },
+        "readiness": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "process_id",
+        "bind_ip",
+        "port",
+        "protocol",
+        "readiness"
+      ],
+      "type": "object"
+    },
+    "HaltCondition": {
+      "description": "Bounded conditions selected by the adapter; clients cannot supply arbitrary probe URLs.",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "status",
+              "type": "string"
+            },
+            "states": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "kind",
+            "states"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "log_contains",
+              "type": "string"
+            },
+            "process_id": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "process_id",
+            "text"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "endpoint": {
+              "type": "string"
+            },
+            "kind": {
+              "const": "http_probe",
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            },
+            "status": {
+              "format": "uint16",
+              "maximum": 65535,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "kind",
+            "endpoint",
+            "path",
+            "status"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "PlannedProcess": {
+      "additionalProperties": false,
+      "description": "Literal arguments passed directly to a host-bound executable, never to a shell parser.",
+      "properties": {
+        "argv": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "cwd": {
+          "type": "string"
+        },
+        "device_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "environment": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "type": "object"
+        },
+        "id": {
+          "type": "string"
+        },
+        "program": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "program",
+        "argv",
+        "cwd"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Reviewable immutable plan projection. The opaque identity is required at admission.",
+  "properties": {
+    "digest": {
+      "type": "string"
+    },
+    "expires_unix_ms": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "plan": {
+      "$ref": "#/$defs/CandidatePlan"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "revision": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "plan_id",
+    "revision",
+    "digest",
+    "expires_unix_ms",
+    "plan"
+  ],
+  "title": "SealedPlan",
+  "type": "object"
+}

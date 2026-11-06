@@ -1,0 +1,171 @@
+{
+  "$defs": {
+    "DeploymentResult": {
+      "additionalProperties": false,
+      "description": "Exactly three business fields; deployment identity lives in the operation envelope.",
+      "properties": {
+        "endpoints": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Endpoint"
+          },
+          "type": "object"
+        },
+        "logs": {
+          "items": {
+            "$ref": "#/$defs/LogLocation"
+          },
+          "type": "array"
+        },
+        "process_tree": {
+          "items": {
+            "$ref": "#/$defs/ProcessIdentity"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "logs",
+        "process_tree",
+        "endpoints"
+      ],
+      "type": "object"
+    },
+    "Endpoint": {
+      "additionalProperties": false,
+      "description": "A named listener or route on a listener, distinct from an advertised public address.",
+      "properties": {
+        "advertised_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bind_ip": {
+          "format": "ip",
+          "type": "string"
+        },
+        "port": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "process_id": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string"
+        },
+        "readiness": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "process_id",
+        "bind_ip",
+        "port",
+        "protocol",
+        "readiness"
+      ],
+      "type": "object"
+    },
+    "LogLocation": {
+      "description": "Safe log locations belong to the actual registered process, not user input.",
+      "properties": {
+        "paths": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "process_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "process_id",
+        "paths"
+      ],
+      "type": "object"
+    },
+    "ProcessIdentity": {
+      "description": "A process identity snapshot is diagnostic data and cannot authorize signalling a PID.",
+      "properties": {
+        "children": {
+          "items": {
+            "$ref": "#/$defs/ProcessIdentity"
+          },
+          "type": "array"
+        },
+        "evidence": {
+          "description": "Platform-specific measured identity/completeness; absent descendants are not claimed complete."
+        },
+        "observed_unix_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "parent_pid": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "pid": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "process_id": {
+          "type": "string"
+        },
+        "started_unix_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "process_id",
+        "pid",
+        "observed_unix_ms",
+        "children",
+        "evidence"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Control metadata surrounds the executor's three-field result.",
+  "properties": {
+    "deployment_id": {
+      "type": "string"
+    },
+    "generation": {
+      "type": "string"
+    },
+    "report_path": {
+      "type": "string"
+    },
+    "result": {
+      "$ref": "#/$defs/DeploymentResult"
+    },
+    "status": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "deployment_id",
+    "generation",
+    "status",
+    "report_path",
+    "result"
+  ],
+  "title": "LaunchEnvelope",
+  "type": "object"
+}

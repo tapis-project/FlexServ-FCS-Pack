@@ -63,7 +63,7 @@ def build(server, source, catalog=None):
         if background:
             spec['execution'] = {'mode': 'background', 'timeout_seconds': 7200, 'max_calls': 512}
             spec['distribution'] = {'mode': 'collective', 'default_selector': {'role': 'worker'}}
-        document = {'schema_version': 'flexserv.tool.v1alpha2', 'kind': 'Tool',
+        document = {'schema_version': 'flexserv.tool.v1alpha3', 'kind': 'Tool',
                     'metadata': {'name': 'io.flexserv.vllm.' + alias.replace('/', '.'), 'version': version, 'visibility': True}, 'spec': spec}
         (path / 'tool.yaml').write_text(yaml.safe_dump(document, sort_keys=False))
         tools.append({'name': document['metadata']['name'], 'version': version, 'path': alias})
@@ -78,14 +78,14 @@ def build(server, source, catalog=None):
     log = natives['process.logs.read']
     path = root / 'logs'
     path.mkdir(parents=True, exist_ok=True)
-    document = {'schema_version': 'flexserv.tool.v1alpha2', 'kind': 'Tool',
+    document = {'schema_version': 'flexserv.tool.v1alpha3', 'kind': 'Tool',
                 'metadata': {'name': 'io.flexserv.vllm.logs', 'version': '1.0.0', 'visibility': True},
                 'spec': {'contract': {'from_native': {'name': log['name'], 'version': log['version']}},
                          'policy': {}, 'steps': [{'id': 'read', 'kind': 'call', 'tool': {'name': log['name'], 'version': log['version']}, 'input': '{{params}}'}]}}
     (path / 'tool.yaml').write_text(yaml.safe_dump(document, sort_keys=False))
     tools.append({'name': 'io.flexserv.vllm.logs', 'version': '1.0.0', 'path': 'logs'})
-    toolset = {'schema_version': 'flexserv.toolset.v1alpha2', 'kind': 'ToolSet',
-               'metadata': {'name': 'io.flexserv.vllm', 'version': '1.0.0'},
+    toolset = {'schema_version': 'flexserv.toolset.v1alpha3', 'kind': 'ToolSet',
+               'metadata': {'name': 'io.flexserv.vllm', 'version': '1.0.0', 'visibility': True},
                'spec': {'description': 'Reviewed Auto and Manual vLLM deployment', 'tools': tools}}
     (root / 'toolset.yaml').write_text(yaml.safe_dump(toolset, sort_keys=False))
     for alias in ('inspect', 'stop'):

@@ -1,0 +1,56 @@
+{
+  "additionalProperties": false,
+  "description": "The executor accepts an owner-bound server reference rather than client-authored commands.",
+  "properties": {
+    "digest": {
+      "type": "string"
+    },
+    "idempotency_key": {
+      "type": "string"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "revision": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "plan_id",
+    "revision",
+    "digest",
+    "idempotency_key"
+  ],
+  "type": "object",
+  "$defs": {
+    "ExecuteInput": {
+      "additionalProperties": false,
+      "description": "The executor accepts an owner-bound server reference rather than client-authored commands.",
+      "properties": {
+        "digest": {
+          "type": "string"
+        },
+        "idempotency_key": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "revision": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "plan_id",
+        "revision",
+        "digest",
+        "idempotency_key"
+      ],
+      "type": "object"
+    }
+  }
+}

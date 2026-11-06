@@ -1,4 +1,4 @@
-schema_version: flexserv.tool.v1alpha2
+schema_version: flexserv.tool.v1alpha3
 kind: Tool
 metadata:
   name: io.flexserv.ssh.keypair.generate_cli
@@ -37,8 +37,10 @@ spec:
       - '{{host.SCRATCH}}/'
   steps:
   - id: workspace
-    kind: native
-    tool: workspace.create
+    kind: call
+    tool:
+      name: workspace.create
+      version: 1.0.0
     input:
       profile: '{{params.workspace_profile}}'
   - id: stage
@@ -48,8 +50,10 @@ spec:
     uses: {}
     workspace: '{{steps.workspace}}'
   - id: disk
-    kind: native
-    tool: workspace.materialize
+    kind: call
+    tool:
+      name: workspace.materialize
+      version: 1.0.0
     input:
       workspace: '{{steps.workspace}}'
   - id: generate

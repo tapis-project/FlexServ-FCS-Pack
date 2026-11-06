@@ -26,7 +26,8 @@ def build(source, output, commit):
                         or item['name'] == 'io.flexserv.paths']
         elif name == 'vllm-pack':
             toolsets = [item for item in manifest['toolsets'] if item['name'] in
-                        ('io.flexserv.deployments', 'io.flexserv.vllm')]
+                        ('io.flexserv.deployments', 'io.flexserv.vllm',
+                         'edu.utexas.tacc.flexserv.deployment.vllm')]
         else:
             toolsets = [item for item in manifest['toolsets'] if item['name'] ==
                         'io.flexserv.models']

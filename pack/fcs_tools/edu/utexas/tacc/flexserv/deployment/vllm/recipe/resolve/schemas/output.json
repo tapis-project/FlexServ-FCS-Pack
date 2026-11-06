@@ -1,0 +1,69 @@
+{
+  "$defs": {
+    "RecipeImport": {
+      "additionalProperties": false,
+      "description": "An immutable imported recipe with reference hardware separated from real hardware.",
+      "properties": {
+        "args": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "digest": {
+          "type": "string"
+        },
+        "engine": {
+          "type": "string"
+        },
+        "environment": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "model_id": {
+          "type": "string"
+        },
+        "reference_gpu": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "revision": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "revision",
+        "digest",
+        "engine",
+        "model_id",
+        "args",
+        "environment"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Source identity and parsed settings are reviewable without granting execution.",
+  "properties": {
+    "recipe": {
+      "$ref": "#/$defs/RecipeImport"
+    },
+    "recipe_ref": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "recipe_ref",
+    "recipe"
+  ],
+  "title": "ResolvedRecipe",
+  "type": "object"
+}

@@ -1,6 +1,6 @@
 # FlexServ Capability Pack
 
-`feature/new_fcs` is the canonical v0.13 `flexserv.fcs-pack.v1alpha2` catalog. One source catalog
+`feature/new_fcs` is the canonical v0.13 `flexserv.fcs-pack.v1alpha3` catalog. One source catalog
 contains the Tapis provisioning workflows under `io.tapis`, deployment workflows
 under `io.flexserv.deployments` and `io.flexserv.vllm`, the shared Hugging Face checkpoint workflow under
 `io.flexserv.models`, and reusable SSH and path tools under `io.flexserv`. Loading a

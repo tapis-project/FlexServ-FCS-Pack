@@ -1,0 +1,30 @@
+schema_version: flexserv.toolset.v1alpha3
+kind: ToolSet
+metadata:
+  name: io.flexserv.demo.workflows
+  version: 1.0.0
+  visibility: true
+spec:
+  description: Five-executor arithmetic demonstration
+  tools:
+  - name: io.flexserv.demo.workflows.expression
+    version: 1.0.0
+    path: expression
+  - name: io.flexserv.demo.workflows.batch
+    version: 1.0.0
+    path: batch
+  - name: io.flexserv.demo.workflows.iterate
+    version: 1.0.0
+    path: iterate
+  - name: io.flexserv.demo.workflows.parallel_batch
+    version: 1.0.0
+    path: parallel_batch
+  - name: io.flexserv.demo.workflows.status
+    version: 1.0.0
+    path: status
+  - name: io.flexserv.demo.workflows.result
+    version: 1.0.0
+    path: result
+  - name: io.flexserv.demo.workflows.cancel
+    version: 1.0.0
+    path: cancel

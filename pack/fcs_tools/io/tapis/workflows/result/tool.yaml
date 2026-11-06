@@ -1,4 +1,4 @@
-schema_version: flexserv.tool.v1alpha2
+schema_version: flexserv.tool.v1alpha3
 kind: Tool
 metadata:
   name: io.tapis.workflows.result
@@ -53,6 +53,8 @@ spec:
   policy: {}
   steps:
   - id: control
-    kind: native
-    tool: workflow.result
+    kind: call
+    tool:
+      name: workflow.result
+      version: 1.0.0
     input: '{{params}}'

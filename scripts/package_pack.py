@@ -26,8 +26,8 @@ def package(source, output):
     if source == output or source in output.parents:
         raise ValueError('Output archive must be outside the Pack')
     manifest = json.loads((source / 'manifest.json').read_text())
-    if manifest['schema_version'] != 'flexserv.fcs-pack.v1alpha2':
-        raise ValueError('Only v0.13 v1alpha2 Packs are supported')
+    if manifest['schema_version'] != 'flexserv.fcs-pack.v1alpha3':
+        raise ValueError('Only v0.13 v1alpha3 Packs are supported')
     inventory = checksums(source)
     if (source / 'checksums.sha256').read_text() != inventory:
         raise ValueError('Source inventory is stale; refresh it explicitly')

@@ -1,0 +1,44 @@
+schema_version: flexserv.tool.v1alpha3
+kind: Tool
+metadata:
+  name: io.flexserv.demo.arithmetic.divide
+  version: 1.0.0
+  visibility: true
+  labels:
+    demo: arithmetic
+    operation: divide
+spec:
+  contract:
+    description: Divide through the outbound Streamable HTTP MCP adapter
+    parameters_schema:
+      type: object
+      properties:
+        a: &id001
+          type: number
+          minimum: -1000000000000.0
+          maximum: 1000000000000.0
+        b: *id001
+      required:
+      - a
+      - b
+      additionalProperties: false
+    output_schema:
+      type: object
+      properties:
+        value: *id001
+      required:
+      - value
+      additionalProperties: false
+  skills:
+  - skill://io.flexserv.demo.arithmetic.divide/1.0.0/divide/SKILL.md
+  policy: {}
+  steps:
+  - id: execute
+    kind: mcp
+    action: call
+    request:
+      connection: arithmetic-demo-mcp
+      tool: divide
+      arguments: '{{params}}'
+      timeout_seconds: 10
+  result: '{{steps.execute.response.structuredContent}}'

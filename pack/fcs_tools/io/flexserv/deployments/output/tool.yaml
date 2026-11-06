@@ -1,4 +1,4 @@
-schema_version: flexserv.tool.v1alpha2
+schema_version: flexserv.tool.v1alpha3
 kind: Tool
 metadata:
   name: io.flexserv.deployments.output
@@ -12,6 +12,8 @@ spec:
   policy: {}
   steps:
   - id: read
-    kind: native
-    tool: process.read_output
+    kind: call
+    tool:
+      name: process.read_output
+      version: 1.0.0
     input: '{{params}}'

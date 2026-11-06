@@ -51,6 +51,8 @@
               "VLLM_XPU_ENABLE_XPU_GRAPH",
               "VLLM_ATTENTION_BACKEND",
               "VLLM_MLA_DISABLE",
+              "VLLM_ROCM_USE_AITER",
+              "VLLM_USE_DEEP_GEMM",
               "LD_LIBRARY_PATH"
             ]
           },
@@ -75,6 +77,8 @@
               "VLLM_XPU_ENABLE_XPU_GRAPH",
               "VLLM_ATTENTION_BACKEND",
               "VLLM_MLA_DISABLE",
+              "VLLM_ROCM_USE_AITER",
+              "VLLM_USE_DEEP_GEMM",
               "LD_LIBRARY_PATH"
             ]
           },
@@ -344,6 +348,13 @@
     "provider_model_id": {
       "maxLength": 512,
       "minLength": 1,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "served_model_name": {
+      "description": "Optional API model name, independent from the verified checkpoint identity.",
       "type": [
         "string",
         "null"

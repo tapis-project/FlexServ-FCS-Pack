@@ -1,0 +1,242 @@
+{
+  "$defs": {
+    "Accelerator": {
+      "additionalProperties": false,
+      "description": "One permitted physical or partitioned device, retaining uncertainty and provenance.",
+      "properties": {
+        "conflict": {
+          "type": "boolean"
+        },
+        "device_id": {
+          "type": "string"
+        },
+        "evidence": true,
+        "family": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "memory_total_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "memory_used_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "pci_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "runtime_ordinal": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "simulated": {
+          "type": "boolean"
+        },
+        "sku": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "target": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uuid": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "vendor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "device_id",
+        "runtime_ordinal",
+        "conflict",
+        "simulated",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "EnvironmentSnapshot": {
+      "additionalProperties": false,
+      "description": "Engine-neutral inventory with selected runtime facts and explicit host grants.",
+      "properties": {
+        "accelerators": {
+          "items": {
+            "$ref": "#/$defs/Accelerator"
+          },
+          "type": "array"
+        },
+        "cpu": true,
+        "diagnostics": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "digest": {
+          "type": "string"
+        },
+        "fabrics": {
+          "items": true,
+          "type": "array"
+        },
+        "host_arch": {
+          "type": "string"
+        },
+        "identity": {
+          "$ref": "#/$defs/SnapshotIdentity"
+        },
+        "interfaces": {
+          "items": {
+            "$ref": "#/$defs/NetworkInterface"
+          },
+          "type": "array"
+        },
+        "memory": true,
+        "model": true,
+        "permitted_hcas": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "permitted_transports": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "routes": {
+          "items": true,
+          "type": "array"
+        },
+        "runtime": true
+      },
+      "required": [
+        "identity",
+        "digest",
+        "host_arch",
+        "cpu",
+        "memory",
+        "accelerators",
+        "interfaces",
+        "fabrics",
+        "routes",
+        "permitted_hcas",
+        "permitted_transports",
+        "runtime",
+        "model",
+        "diagnostics"
+      ],
+      "type": "object"
+    },
+    "NetworkInterface": {
+      "additionalProperties": false,
+      "description": "A network interface is an observed candidate; it is not connectivity proof.",
+      "properties": {
+        "addresses": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "evidence": true,
+        "loopback": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "operational": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "addresses",
+        "loopback",
+        "evidence"
+      ],
+      "type": "object"
+    },
+    "SnapshotIdentity": {
+      "additionalProperties": false,
+      "description": "Identity supplied by FCS, never decoded from a public inspection request.",
+      "properties": {
+        "allocation_epoch": {
+          "type": "string"
+        },
+        "expires_unix_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "instance_id": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "observed_unix_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "node_id",
+        "allocation_epoch",
+        "instance_id",
+        "observed_unix_ms",
+        "expires_unix_ms"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Clients retain this identity; they cannot substitute raw evidence during planning.",
+  "properties": {
+    "snapshot": {
+      "$ref": "#/$defs/EnvironmentSnapshot"
+    },
+    "snapshot_ref": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "snapshot_ref",
+    "snapshot"
+  ],
+  "title": "Inspection",
+  "type": "object"
+}

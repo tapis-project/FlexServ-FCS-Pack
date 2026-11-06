@@ -1,0 +1,26 @@
+schema_version: flexserv.tool.v1alpha3
+kind: Tool
+metadata:
+  name: edu.utexas.tacc.flexserv.deployment.vllm.environment.inspect
+  version: 1.0.0
+  visibility: true
+spec:
+  contract:
+    description: Inspect through the existing all-smi collector and identity-checked
+      runtime enrichment.
+    parameters_schema: schemas/input.json
+    output_schema: schemas/output.json
+  policy:
+    derive: dependencies
+    resources:
+    - local_vllm
+  steps:
+  - id: operation
+    kind: call
+    tool:
+      name: edu.utexas.tacc.flexserv.deployment.environment.inspect
+      version: 1.0.0
+    input:
+      profile: local_vllm
+      input: '{{params}}'
+  result: '{{steps.operation}}'

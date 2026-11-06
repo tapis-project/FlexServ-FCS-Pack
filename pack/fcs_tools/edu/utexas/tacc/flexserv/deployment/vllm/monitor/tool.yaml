@@ -1,0 +1,10 @@
+schema_version: flexserv.tool.v1alpha3
+kind: Tool
+metadata:
+  name: edu.utexas.tacc.flexserv.deployment.vllm.monitor
+  version: 1.0.0
+  visibility: true
+spec:
+  extends:
+    name: edu.utexas.tacc.flexserv.deployment.monitor
+    version: 1.0.0

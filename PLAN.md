@@ -1,5 +1,19 @@
 # FlexServ 1.5 Alpha delivery
 
+## v3 publication and deployment framework (2026-11-06)
+
+The canonical Pack includes `edu.utexas.tacc.flexserv.deployment.vllm` alongside
+both existing vLLM ToolSets. `scripts/build_deployment_framework_pack.py` generates
+schemas from the actual FCS native catalog; monitor/cancel use approved pinned
+inheritance and all leaves have indexed guides. Split vLLM archives include the
+new ToolSet. Explicit ToolSet publication ceilings and generators/examples were
+updated together; child visibility remains individually controlled.
+
+New execution currently advertises one-member vLLM TP/PP. Broader layouts remain
+available through the existing reviewed workflow. Canonical Pack loading,
+inventories and 23 packaging tests pass; real HTTP acceptance exercises new and
+existing tools. No ToolSet was removed and no release was published in this change.
+
 Approved on 2026-10-25. Ship only Gateway and Capability Server, one v1alpha2 Pack, and simple Slurm Bash entrypoints. Preserve unrelated files.
 
 - [x] Verify remote branches and establish the official FCS checkout. Proof: remote SHA and clean tracked state.
